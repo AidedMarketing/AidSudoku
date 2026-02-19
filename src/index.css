@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light dark;
+  }
+
+  body {
+    @apply bg-white dark:bg-[#121212] text-gray-900 dark:text-white;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior: none;
+    user-select: none;
+  }
+
+  /* Safe area padding utilities */
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+}
+
+@layer utilities {
+  /* Hide default button outline; we handle focus styles manually */
+  button:focus-visible {
+    @apply ring-2 ring-accent ring-offset-2;
+  }
+}
