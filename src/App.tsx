@@ -7,6 +7,7 @@ import { Daily } from './pages/Daily'
 import { Passport } from './pages/Passport'
 import { Stats } from './pages/Stats'
 import { Learn } from './pages/Learn'
+import { Lesson } from './pages/Lesson'
 import { Settings } from './pages/Settings'
 import { useSettingsStore } from './store/settingsStore'
 
@@ -21,8 +22,9 @@ export default function App() {
   return (
     <div className="max-w-md mx-auto relative min-h-screen">
       <Routes>
-        {/* Game is full-screen — no tab bar */}
+        {/* Full-screen pages — no tab bar */}
         <Route path="/game" element={<Game />} />
+        <Route path="/learn/:technique" element={<Lesson />} />
 
         {/* Tab-bar pages */}
         <Route

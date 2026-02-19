@@ -4,7 +4,12 @@ import { useSettingsStore } from '../../store/settingsStore'
 import { getConflicts } from '../../lib/sudoku/validator'
 import { rowOf, colOf, boxOf } from '../../lib/sudoku/generator'
 
-export function SudokuBoard() {
+interface Props {
+  coachHighlight?: Set<number>
+  coachTarget?: number | null
+}
+
+export function SudokuBoard({ coachHighlight, coachTarget }: Props = {}) {
   const {
     board, initialClues, selectedCell, notes,
     handleCellPress, puzzle,
@@ -45,8 +50,9 @@ export function SudokuBoard() {
           value === selectedValue &&
           !isSelected
 
-        const isConflict  = conflicts.has(i)
-        const isHint      = false  // tracked in a future enhancement
+        const isConflict      = conflicts.has(i)
+        const isCoachTarget   = coachTarget === i
+        const isCoachRelated  = !isCoachTarget && (coachHighlight?.has(i) ?? false)
 
         return (
           <SudokuCell
@@ -54,11 +60,11 @@ export function SudokuBoard() {
             idx={i}
             value={value}
             isGiven={isGiven}
-            isSelected={isSelected}
+            isSelected={isSelected || isCoachRelated}
             isSameNumber={isSameNumber}
             isRelated={isRelated}
             isConflict={isConflict}
-            isHint={isHint}
+            isHint={isCoachTarget}
             notes={notes[i] ?? []}
             onPress={handleCellPress}
           />

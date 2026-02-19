@@ -1,4 +1,5 @@
 import { useGame } from '../../hooks/useGame'
+import { useGameStore } from '../../store/gameStore'
 
 interface ControlBtn {
   label: string
@@ -12,12 +13,15 @@ export function GameControls() {
     handleUndo, handleErase, handleHint,
     toggleNotesMode, isNotesMode,
   } = useGame()
+  const coachMode       = useGameStore(s => s.coachMode)
+  const toggleCoachMode = useGameStore(s => s.toggleCoachMode)
 
   const controls: ControlBtn[] = [
     { label: 'Undo',  icon: '↩',  action: handleUndo },
     { label: 'Erase', icon: '⌫',  action: handleErase },
     { label: 'Notes', icon: '✏️', action: toggleNotesMode, active: isNotesMode },
     { label: 'Hint',  icon: '💡', action: handleHint },
+    { label: 'Coach', icon: '🎓', action: toggleCoachMode, active: coachMode },
   ]
 
   return (
