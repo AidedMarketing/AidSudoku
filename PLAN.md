@@ -1,8 +1,54 @@
 # AidSudoku — Full Product & Engineering Plan
 
+## Positioning
+> **"The Sudoku app that makes you better."**
+
+Every other Sudoku app treats players as a static skill level forever. NYT Sudoku is beautiful but teaches nothing. Good Sudoku hints at what to do but never explains why. AidSudoku is the first app to treat Sudoku like chess — a game with a real skill ceiling where players can grow from beginner to expert and *feel* that growth at every step.
+
+Target audience: people who already enjoy Sudoku and people who want to pick it up. Both groups need the same thing: a clear path forward and the satisfaction of genuine improvement.
+
 ## Vision
 A clean, minimal Sudoku app in the spirit of NYT Games — polished, approachable, and
-educational. Ships as a PWA first, then wraps natively with Capacitor for the Apple App Store.
+purposefully educational. Ships as a PWA first, then wraps natively with Capacitor for the Apple App Store.
+
+---
+
+## The Competitive Gap
+
+| App | What it does well | What it fails at |
+|---|---|---|
+| NYT Sudoku | Beautiful, daily habit | No learning, no progression, one puzzle a day and done |
+| Good Sudoku | Smart hints | Hints tell you *what*, never *why*, doesn't make you better |
+| Sudoku.com | Feature-rich | Cluttered, gamified with cheap streaks, no real growth |
+| Every other app | Basic gameplay | Treats all players as the same static skill level forever |
+
+AidSudoku fills this gap with three features no competitor has.
+
+---
+
+## Signature Differentiators
+
+### 1. Technique Passport
+A visual skill map showing every solving technique from "Naked Singles" all the way to X-Wing and Y-Wing. Each technique a player masters earns a passport stamp. The passport is:
+- **Shareable** — show off your progress like a badge
+- **Directional** — always answers "what should I learn next?"
+- **Progressive** — harder puzzle types unlock as your passport fills
+
+The passport is the spine of the whole product. It connects the Learn section, game difficulty, stats, and daily challenges into one coherent progression arc.
+
+### 2. Solve Report (Post-Game Breakdown)
+After every completed puzzle, show an analysis card instead of just a timer result:
+
+> *"This puzzle required Naked Pairs (×3) and Hidden Singles (×2). You solved it in 6:12 — 18% faster than your average for this technique set. No hints used. ⭐⭐⭐"*
+
+This turns every solve into a learning moment. Players understand why a puzzle felt hard, see which techniques they're leaning on, and have something to chase on the next attempt.
+
+### 3. The "A-ha!" Recognition System
+When a player correctly applies a technique in a real puzzle — without being prompted by Coach mode — the app detects it and calls it out in the moment:
+
+> *"Nice — you just used Pointing Pairs! 🎯"*
+
+This is the dopamine hit that no other app delivers. It makes players feel genuinely smart (not lucky), reinforces technique learning in a real game context, and builds the emotional attachment that turns a new user into a daily habit.
 
 ---
 
@@ -46,6 +92,14 @@ educational. Ships as a PWA first, then wraps natively with Capacitor for the Ap
 │   │   │   ├── TechniqueDetail.tsx  # Full lesson with explanation + practice board
 │   │   │   ├── PracticeBoard.tsx    # Mini interactive puzzle for a specific technique
 │   │   │   └── CoachOverlay.tsx     # Step-by-step walkthrough mode overlay
+│   │   ├── passport/
+│   │   │   ├── PassportView.tsx     # Full passport — grid of all techniques with stamp states
+│   │   │   ├── PassportStamp.tsx    # Individual technique stamp (locked/learned/mastered)
+│   │   │   └── PassportShareCard.tsx # Shareable passport image for social
+│   │   ├── solve-report/
+│   │   │   ├── SolveReport.tsx      # Post-game analysis modal
+│   │   │   ├── TechniqueBreakdown.tsx # List of techniques used in that solve
+│   │   │   └── SolveScore.tsx       # Star rating + time vs. personal best
 │   │   ├── daily/
 │   │   │   ├── DailyBanner.tsx      # Today's puzzle entry card on Home
 │   │   │   ├── Leaderboard.tsx      # Ranked times for today's puzzle
@@ -65,20 +119,24 @@ educational. Ships as a PWA first, then wraps natively with Capacitor for the Ap
 │   │   └── Settings.tsx     # Theme, sound, notifications, account
 │   ├── lib/
 │   │   ├── sudoku/
-│   │   │   ├── generator.ts    # Backtracking puzzle generator by difficulty
-│   │   │   ├── solver.ts       # Constraint-based solver (used for hints + validation)
-│   │   │   ├── validator.ts    # Is board valid? Is cell correct?
-│   │   │   └── techniques.ts   # Implements named techniques (for Learn + hint explanations)
-│   │   └── supabase.ts         # Supabase client + typed helpers
+│   │   │   ├── generator.ts      # Backtracking puzzle generator by difficulty
+│   │   │   ├── solver.ts         # Constraint-based solver (used for hints + validation)
+│   │   │   ├── validator.ts      # Is board valid? Is cell correct?
+│   │   │   ├── techniques.ts     # Implements named techniques (for Learn + hint explanations)
+│   │   │   └── techniqueDetector.ts  # Watches board state and fires A-ha! events when a technique is applied
+│   │   └── supabase.ts           # Supabase client + typed helpers
 │   ├── store/
-│   │   ├── gameStore.ts      # Active puzzle state, notes, undo stack, timer
-│   │   ├── statsStore.ts     # Local stats (synced to Supabase when authed)
-│   │   └── settingsStore.ts  # Theme, sound, haptics, notification prefs
+│   │   ├── gameStore.ts        # Active puzzle state, notes, undo stack, timer, techniques used this game
+│   │   ├── statsStore.ts       # Local stats (synced to Supabase when authed)
+│   │   ├── passportStore.ts    # Technique mastery state (locked/learned/mastered per technique)
+│   │   └── settingsStore.ts    # Theme, sound, haptics, notification prefs
 │   └── hooks/
-│       ├── useGame.ts          # Game logic orchestration
-│       ├── usePuzzleOfDay.ts   # Fetch + cache today's puzzle + leaderboard
-│       ├── useTimer.ts         # Pause/resume stopwatch
-│       └── useHaptics.ts       # Capacitor haptics (vibrate on number entry, win, error)
+│       ├── useGame.ts            # Game logic orchestration
+│       ├── usePuzzleOfDay.ts     # Fetch + cache today's puzzle + leaderboard
+│       ├── useTimer.ts           # Pause/resume stopwatch
+│       ├── useHaptics.ts         # Capacitor haptics (vibrate on number entry, win, error)
+│       ├── useAhaMoment.ts       # Subscribes to techniqueDetector, triggers A-ha! toast + passport update
+│       └── useSolveReport.ts     # Builds the post-game analysis object from gameStore state
 ├── ios/                      # Capacitor-generated iOS project (Xcode)
 ├── capacitor.config.ts       # Capacitor configuration
 ├── vite.config.ts
@@ -93,12 +151,13 @@ educational. Ships as a PWA first, then wraps natively with Capacitor for the Ap
 ```sql
 -- Puzzles table (pre-seeded daily puzzles + dynamically generated)
 CREATE TABLE puzzles (
-  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  clues       TEXT NOT NULL,       -- 81-char string, '0' = empty
-  solution    TEXT NOT NULL,       -- 81-char string, full answer
-  difficulty  TEXT NOT NULL,       -- 'easy' | 'medium' | 'hard' | 'expert'
-  daily_date  DATE UNIQUE,         -- NULL for generated puzzles, date for POTD
-  created_at  TIMESTAMPTZ DEFAULT now()
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  clues            TEXT NOT NULL,         -- 81-char string, '0' = empty
+  solution         TEXT NOT NULL,         -- 81-char string, full answer
+  difficulty       TEXT NOT NULL,         -- 'easy' | 'medium' | 'hard' | 'expert'
+  technique_tags   TEXT[] NOT NULL,       -- e.g. ['naked_singles', 'hidden_pairs', 'x_wing']
+  daily_date       DATE UNIQUE,           -- NULL for generated puzzles, date for POTD
+  created_at       TIMESTAMPTZ DEFAULT now()
 );
 
 -- Users (anonymous IDs auto-created, upgraded when user opts in)
@@ -106,14 +165,26 @@ CREATE TABLE puzzles (
 
 -- Solve attempts (stats + leaderboard source)
 CREATE TABLE solve_attempts (
-  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id      UUID REFERENCES auth.users(id),
-  puzzle_id    UUID REFERENCES puzzles(id),
-  time_seconds INT NOT NULL,
-  completed    BOOLEAN DEFAULT false,
-  hints_used   INT DEFAULT 0,
-  errors_made  INT DEFAULT 0,
-  created_at   TIMESTAMPTZ DEFAULT now()
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id          UUID REFERENCES auth.users(id),
+  puzzle_id        UUID REFERENCES puzzles(id),
+  time_seconds     INT NOT NULL,
+  completed        BOOLEAN DEFAULT false,
+  hints_used       INT DEFAULT 0,
+  errors_made      INT DEFAULT 0,
+  techniques_used  TEXT[] DEFAULT '{}',   -- techniques the detector fired during this solve
+  created_at       TIMESTAMPTZ DEFAULT now()
+);
+
+-- Passport progress (one row per user per technique)
+CREATE TABLE passport_progress (
+  id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id        UUID REFERENCES auth.users(id),
+  technique      TEXT NOT NULL,           -- e.g. 'x_wing'
+  status         TEXT NOT NULL DEFAULT 'locked',  -- 'locked' | 'learned' | 'mastered'
+  first_used_at  TIMESTAMPTZ,             -- when the A-ha! moment first fired
+  use_count      INT DEFAULT 0,           -- total times detected in real games
+  UNIQUE (user_id, technique)
 );
 
 -- Leaderboard view (daily puzzle only, top 100 by time)
@@ -122,6 +193,7 @@ CREATE VIEW daily_leaderboard AS
     sa.user_id,
     sa.time_seconds,
     sa.hints_used,
+    sa.techniques_used,
     p.daily_date,
     RANK() OVER (PARTITION BY p.daily_date ORDER BY sa.time_seconds) AS rank
   FROM solve_attempts sa
@@ -150,6 +222,7 @@ CREATE VIEW daily_leaderboard AS
 - [ ] Timer: start on first move, pause when app backgrounds
 - [ ] Completion detection + win animation (Framer Motion)
 - [ ] Local persistence: save game state to `localStorage` so refreshing doesn't lose progress
+- [ ] `techniqueDetector.ts`: foundation layer — after each valid cell entry, analyse the board state diff to identify which technique the move corresponds to (fires events consumed in Phase 4)
 
 ---
 
@@ -197,8 +270,8 @@ CREATE VIEW daily_leaderboard AS
 
 ---
 
-### Phase 4 — Learn Section (Full Technique Library)
-> Goal: Make users better at Sudoku through in-app teaching.
+### Phase 4 — Learn Section + Signature Differentiators
+> Goal: Make users measurably better at Sudoku. Ship the three features that define AidSudoku.
 
 **Techniques to cover (in order of difficulty):**
 1. Last Remaining in Box/Row/Column (naked singles)
@@ -211,10 +284,45 @@ CREATE VIEW daily_leaderboard AS
 8. Y-Wing
 9. Swordfish (stretch goal)
 
-**For each technique:**
+**Technique Passport:**
+- [ ] `passportStore.ts`: tracks status per technique (locked → learned → mastered)
+  - *Learned*: completed the in-app lesson for that technique
+  - *Mastered*: used the technique in 5+ real games without a hint
+- [ ] `PassportView.tsx`: full-screen visual grid of all 9 techniques as stamp slots
+  - Locked stamps are greyed out with a padlock
+  - Learned stamps are filled with the technique name + icon
+  - Mastered stamps get a gold border
+- [ ] Passport tab in navigation (replaces old Learn tab — Learn lives inside Passport)
+- [ ] `PassportShareCard.tsx`: generate a shareable image "I've mastered 6/9 Sudoku techniques on AidSudoku"
+- [ ] Puzzle filter: on the new game screen, players can pick "show me puzzles that need X-Wing" to practice a specific technique
+
+**For each technique (inside Passport):**
 - [ ] Written explanation with visual diagram (SVG or CSS-based)
 - [ ] Interactive practice board: a small puzzle where only that technique is needed
 - [ ] "Try it" mode: app guides you to find the relevant cells, celebrates when found
+- [ ] Completing the lesson flips technique status from *locked* to *learned*
+
+**A-ha! Recognition System:**
+- [ ] `techniqueDetector.ts` (built in Phase 1): fires a named event when a move matches a known technique
+- [ ] `useAhaMoment.ts`: subscribes to detector events, cross-references with `passportStore`
+  - If technique is *learned* and player uses it in a real game: fire A-ha! toast + increment `use_count`
+  - At 5 real-game uses: promote to *mastered*, trigger a bigger celebration (confetti + passport stamp animation)
+  - If technique is *locked* and player stumbles into it: show a "You discovered X-Wing!" prompt leading to the lesson
+- [ ] A-ha! toast component: subtle banner mid-game ("Nice — you just used Pointing Pairs! 🎯"), non-disruptive
+- [ ] All A-ha! events write to `passport_progress` table in Supabase
+
+**Solve Report:**
+- [ ] `useSolveReport.ts`: builds the report object on puzzle completion from `gameStore` state
+  - Techniques used this solve (from detector event log)
+  - Time vs. personal best for this technique set
+  - Hints used, errors made
+  - Star rating (3 stars = no hints, no errors; 2 stars = 1–2 hints or errors; 1 star = completed)
+- [ ] `SolveReport.tsx`: animated modal after win screen fades
+  - Headline: "You solved it in 4:23 ⭐⭐⭐"
+  - Technique breakdown: chips for each technique used with a count badge
+  - Comparison line: "18% faster than your average for this difficulty"
+  - CTA: "Learn X-Wing" button if a new technique appeared and isn't yet in passport
+- [ ] Solve reports stored in `solve_attempts.techniques_used` for historical stats
 
 **Coach / Walkthrough mode:**
 - [ ] Available on any puzzle — toggle "Coach" in game controls
@@ -224,7 +332,7 @@ CREATE VIEW daily_leaderboard AS
 
 **Hint system (upgrade from Phase 1):**
 - [ ] Hints now explain WHY: "This cell must be 7 — it's the only number that can go in this row" (with cells highlighted)
-- [ ] Track hints used (shown in post-game stats and leaderboard)
+- [ ] Track hints used (shown in post-game stats, Solve Report, and leaderboard)
 
 ---
 
@@ -258,15 +366,21 @@ CREATE VIEW daily_leaderboard AS
 Bottom Tab Bar:
 ├── Home         — Daily banner, quick play buttons, recent games
 ├── Daily        — Puzzle of the Day + leaderboard
-├── Learn        — Technique library, progress tracking
-├── Stats        — Personal stats, streaks, history
+├── Passport     — Technique skill map, lessons, mastery progress (★ the signature tab)
+├── Stats        — Personal stats, streaks, solve history
 └── Settings     — Account, appearance, gameplay preferences
 
 Game Screen (full-screen modal over nav):
 ├── Header: difficulty + timer + pause
 ├── Board: 9x9 grid
+├── A-ha! Toast: appears mid-game above the board when a technique is detected
 ├── Controls: undo, erase, notes, hint, coach
 └── Number pad
+
+Post-Game Flow:
+├── Win animation (Framer Motion)
+├── Solve Report modal (techniques used, time, star rating)
+└── CTA: Share result / Learn a technique / Play again
 ```
 
 ---
@@ -309,11 +423,21 @@ UI labels:     14–16px, medium
 
 ## Monetization Flexibility (Future-Ready)
 
-The app is designed to support multiple monetization models without requiring a rewrite:
+The app is designed to support multiple monetization models without requiring a rewrite. The `settingsStore` has an `isPremium` boolean from day one — every feature is built with this flag in mind.
 
-- **Premium unlock**: `settingsStore` has a `isPremium` boolean. Gate features (unlimited hints, extra themes, detailed stats) behind this flag. Add IAP via `@capacitor/purchases` (RevenueCat) when ready.
-- **Subscription**: Same flag, just connected to a subscription product instead.
-- **No ads**: The clean minimal design is incompatible with banner ads. If ads are ever considered, rewarded video only (watch ad to get extra hints).
+**Natural premium gates (when ready):**
+- **Passport advanced techniques**: first 4 techniques free (naked singles through hidden pairs), X-Wing and above require premium. This is a natural gate — casual players never need them, serious players will pay.
+- **Solve Report history**: see today's report for free, full history (last 30 days) behind premium.
+- **Unlimited hints**: free players get 3 hints per puzzle, premium is unlimited.
+- **Extra themes**: the base minimal theme is free, additional color themes (dark mode, sepia, high-contrast) are premium.
+- **Passport sharing**: share card generation is premium (drives organic marketing only from engaged users).
+
+**Monetization model options** (all compatible with the `isPremium` flag):
+- One-time purchase: "Unlock AidSudoku Pro" — clean, user-friendly
+- Subscription: monthly/yearly, like NYT Games — better LTV
+- RevenueCat (`@capacitor/purchases`) will be the IAP layer for both models when we're ready
+
+**No ads**: The minimal design is incompatible with banner ads. If ads are ever considered, rewarded video only (watch an ad to get an extra hint).
 
 ---
 
@@ -321,10 +445,10 @@ The app is designed to support multiple monetization models without requiring a 
 
 | Phase | Deliverable | Estimated Complexity |
 |---|---|---|
-| 1 | Fully playable local game | High (core engine) |
+| 1 | Fully playable local game + technique detector foundation | High (core engine) |
 | 2 | PWA, installable, polished | Medium |
-| 3 | Daily puzzle + leaderboard + stats | High (backend) |
-| 4 | Full Learn section + Coach mode | High (content + UX) |
+| 3 | Daily puzzle + leaderboard + stats + Solve Report | High (backend) |
+| 4 | Technique Passport + A-ha! system + Coach mode + full Learn section | High (content + UX) |
 | 5 | Capacitor iOS + App Store | Medium (config heavy) |
 
 ---
