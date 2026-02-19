@@ -206,157 +206,174 @@ CREATE VIEW daily_leaderboard AS
 
 ## Feature Breakdown by Phase
 
-### Phase 1 — Core Game Engine + Basic UI (Foundation)
-> Goal: A fully playable local Sudoku game in the browser.
+### Phase 1 — Identity
+> Goal: From the very first build, this feels like AidSudoku — not a generic Sudoku app. The differentiators are thin but real from day one.
 
+**Foundation**
 - [ ] Scaffold: `npm create vite@latest` with React + TypeScript template
 - [ ] Install Tailwind, Zustand, React Router, Framer Motion
 - [ ] Sudoku engine:
-  - `generator.ts`: backtracking generator, difficulty controlled by clue count (Easy: 36+, Medium: 27–35, Hard: 22–26, Expert: 17–21)
-  - `solver.ts`: constraint propagation + backtracking (used for validation and hints)
-  - `validator.ts`: check for row/col/box conflicts
-- [ ] Board UI: SudokuBoard + SudokuCell with selection, highlight same numbers, highlight row/col/box of selected cell
+  - `generator.ts`: backtracking generator, difficulty by clue count (Easy: 36+, Medium: 27–35, Hard: 22–26, Expert: 17–21)
+  - `solver.ts`: constraint propagation + backtracking (validation and hints)
+  - `validator.ts`: row/col/box conflict detection
+  - `techniqueDetector.ts`: after each valid cell entry, analyse the board state diff to identify which technique the move corresponds to — fires named events consumed throughout the app
+- [ ] Board UI: SudokuBoard + SudokuCell with selection, same-number highlighting, row/col/box highlight
 - [ ] Number pad: tap to enter, long-press to enter note
-- [ ] Notes mode: toggle between "answer" and "pencil" mode
-- [ ] Game controls: Undo, Erase, Notes toggle, Hint (just the number for now)
-- [ ] Timer: start on first move, pause when app backgrounds
-- [ ] Completion detection + win animation (Framer Motion)
-- [ ] Local persistence: save game state to `localStorage` so refreshing doesn't lose progress
-- [ ] `techniqueDetector.ts`: foundation layer — after each valid cell entry, analyse the board state diff to identify which technique the move corresponds to (fires events consumed in Phase 4)
+- [ ] Notes mode: toggle between answer and pencil mode
+- [ ] Game controls: Undo, Erase, Notes toggle, Hint (number only for now)
+- [ ] Timer: starts on first move, pauses when app backgrounds
+- [ ] Win detection + win animation
+- [ ] Local persistence: full game state to `localStorage`
+
+**Passport Skeleton** *(visible from day one)*
+- [ ] `passportStore.ts`: tracks status per technique (locked / learned / mastered), persisted to `localStorage`
+- [ ] `PassportView.tsx`: full grid of all 9 technique stamp slots — mostly locked, showing the journey ahead
+- [ ] First stamp (Naked Singles) auto-unlocks on first completed puzzle with a small celebration
+- [ ] Passport tab live in navigation from day one
+
+**Solve Report v1** *(ships with Phase 1)*
+- [ ] `useSolveReport.ts`: builds report from `gameStore` state on completion
+  - Techniques detected this solve (from detector event log)
+  - Star rating: ⭐⭐⭐ no hints/errors, ⭐⭐ 1–2 hints or errors, ⭐ completed
+  - Time taken
+  - *(No comparison stats yet — no history — added in Phase 4)*
+- [ ] `SolveReport.tsx`: animated modal after win screen
+  - Headline: "You solved it in 4:23 ⭐⭐⭐"
+  - Technique chips for each technique detected
+  - CTA: "See your Passport" to connect solve to progression
+
+**A-ha! Toast** *(thin version — first two techniques only)*
+- [ ] `useAhaMoment.ts`: subscribes to `techniqueDetector`, fires for Naked Singles and Hidden Singles
+- [ ] Subtle mid-game banner: *"Nice — you just used Hidden Singles! 🎯"*
+- [ ] Updates `passportStore` use_count locally
+
+**Onboarding** *(first-time only)*
+- [ ] Screen 1: Welcome — *"AidSudoku helps you actually get better at Sudoku."*
+- [ ] Screen 2: Passport intro — shows the Passport with all stamps locked, one tap to understand the journey
+- [ ] Screen 3: First puzzle — starts immediately, Coach mode silently on to help if stuck
+- [ ] Screen 4: First Solve Report — introduces the concept, prompts the first Passport visit
 
 ---
 
-### Phase 2 — PWA Configuration + UX Polish
-> Goal: Installable on mobile, works fully offline.
+### Phase 2 — Learn
+> Goal: The Passport becomes meaningful. Players have a clear path forward and the app starts delivering on its promise.
 
-- [ ] `vite-plugin-pwa` configuration:
-  - Web App Manifest (name, icons, theme color, display: standalone)
-  - Workbox service worker (cache-first for assets, network-first for API calls)
-- [ ] App icons: generate all sizes from master SVG (512x512 minimum)
-- [ ] Responsive layout: optimized for 375px (iPhone SE) through 430px (iPhone 15 Pro Max) with safe area insets
-- [ ] Game difficulty selector: modal to choose difficulty before starting
+**First 4 Technique Lessons** *(the free tier)*
+1. Naked Singles — Last remaining cell in a row/col/box
+2. Hidden Singles — Only cell in a unit that can hold a number
+3. Naked Pairs / Naked Triples
+4. Hidden Pairs / Hidden Triples
+
+For each:
+- [ ] Written explanation with visual diagram (SVG/CSS)
+- [ ] Interactive practice board: a puzzle where only that technique is needed
+- [ ] "Try it" mode: app highlights the relevant cells, celebrates when found
+- [ ] Completing the lesson promotes technique from *locked* → *learned* in `passportStore`
+
+**A-ha! Upgraded**
+- [ ] `useAhaMoment.ts` now covers all 4 learned techniques
+- [ ] At 5 real-game detections: promote to *mastered*, confetti + passport stamp animation
+- [ ] If a locked technique is stumbled into: *"You discovered Hidden Pairs!"* prompt → lesson CTA
+
+**Solve Report Gains a Learn CTA**
+- [ ] If a new technique appeared in this solve and isn't yet in passport: "Want to learn what that was?" → lesson
+
+**Coach Mode**
+- [ ] Toggle "Coach" in game controls on any puzzle
+- [ ] Uses `techniques.ts` to identify the next logical move
+- [ ] Highlights the relevant cells and names the technique being applied
+- [ ] Player steps forward one move at a time
+
+**Hints Upgraded**
+- [ ] Hints now explain WHY: *"This cell must be 7 — it's the only number left in this column"* with cells highlighted
+- [ ] Hint usage tracked and shown on Solve Report
+
+---
+
+### Phase 3 — Polish
+> Goal: The app feels premium. Worth installing, worth recommending.
+
+- [ ] `vite-plugin-pwa`: Web App Manifest + Workbox service worker (offline-first)
+- [ ] App icons: all sizes generated from master SVG
+- [ ] Responsive layout: 375px (iPhone SE) through 430px (iPhone 15 Pro Max), safe area insets
+- [ ] Framer Motion pass: cell selection, number entry, stamp earn, win screen, Solve Report entrance
+- [ ] Game difficulty selector: modal before starting
 - [ ] "New Game" confirmation if a game is in progress
-- [ ] Error highlighting: toggle to show/hide mistakes (red cell background)
-- [ ] Settings page (stored in Zustand + localStorage):
+- [ ] Error highlighting: red cell tint (toggleable)
+- [ ] Settings page (Zustand + localStorage):
   - Show/hide timer
   - Show/hide errors
   - Auto-remove notes when a number is placed
-  - Sound effects (toggle)
-- [ ] Toast notifications: "Puzzle saved!", "Great solve!", etc.
-- [ ] Add-to-home-screen prompt (custom, not browser default)
+  - Sound effects toggle
+- [ ] Add-to-home-screen prompt (custom — not the browser default)
+- [ ] Toast system: "Puzzle saved", "Great solve!", A-ha! notifications
 
 ---
 
-### Phase 3 — Backend, Stats + Puzzle of the Day
-> Goal: Cloud leaderboard, personal stats, daily puzzle.
+### Phase 4 — Scale
+> Goal: The community and cloud layer. Passport and stats live in the cloud, daily puzzle brings players back every day.
 
-- [ ] Supabase project setup: create project, configure environment variables
-- [ ] Anonymous auth: user gets a UUID on first launch, no sign-in required
-- [ ] Supabase schema: create puzzles + solve_attempts tables, daily_leaderboard view
-- [ ] Seed daily puzzles: script to generate and insert 365 daily puzzles by date
-- [ ] Puzzle of the Day page:
-  - Fetch today's puzzle by `daily_date = TODAY`
-  - Lock puzzle to one attempt per day per user
-  - Submit time + stats on completion
-  - Real-time leaderboard (Supabase Realtime subscriptions)
-  - Share card: "I solved today's AidSudoku in 4:23 with no hints! 🟦🟦🟦🟦🟦🟦🟦🟦🟦" + link
-- [ ] Stats page:
-  - Games played per difficulty
-  - Win rate
-  - Best time / average time per difficulty
-  - Current streak + longest streak
-  - Chart of recent solve times (simple bar chart)
-- [ ] Optional account upgrade: Settings page offers "Save your stats to the cloud" — connects anonymous ID to real auth (Apple Sign-In, Google)
+**Backend Setup**
+- [ ] Supabase project: configure environment variables, enable anonymous auth
+- [ ] Deploy schema: puzzles, solve_attempts, passport_progress, daily_leaderboard view
+- [ ] Anonymous auth: UUID assigned on first launch, no sign-in needed
+- [ ] Cloud sync: `passportStore` and `statsStore` write to Supabase on every change
 
----
+**Daily Puzzle + Leaderboard**
+- [ ] Seed script: generate and insert 365 daily puzzles tagged by technique requirements
+- [ ] Daily Puzzle page: fetch by `daily_date = TODAY`, one attempt per user per day
+- [ ] Real-time leaderboard via Supabase Realtime subscriptions
+- [ ] Share card: *"I solved today's AidSudoku in 4:23 ⭐⭐⭐"* + shareable link
 
-### Phase 4 — Learn Section + Signature Differentiators
-> Goal: Make users measurably better at Sudoku. Ship the three features that define AidSudoku.
+**Solve Report v2**
+- [ ] Comparison line now live: *"18% faster than your average for this difficulty"*
+- [ ] Technique frequency over time: *"You've used Naked Pairs in 12 of your last 20 solves"*
+- [ ] Full solve history accessible from Stats page
 
-**Techniques to cover (in order of difficulty):**
-1. Last Remaining in Box/Row/Column (naked singles)
-2. Last Possible Number (hidden singles)
-3. Naked Pairs / Naked Triples
-4. Hidden Pairs / Hidden Triples
+**Stats Page**
+- [ ] Games played per difficulty, win rate
+- [ ] Best time / average time per difficulty
+- [ ] Current streak + longest streak
+- [ ] Technique mastery progress (% toward mastered per technique)
+- [ ] Simple bar chart of recent solve times
+
+**Advanced Techniques** *(techniques 5–9, completing the Passport)*
 5. Pointing Pairs
 6. Box/Line Reduction
 7. X-Wing
 8. Y-Wing
-9. Swordfish (stretch goal)
+9. Swordfish *(stretch goal)*
 
-**Technique Passport:**
-- [ ] `passportStore.ts`: tracks status per technique (locked → learned → mastered)
-  - *Learned*: completed the in-app lesson for that technique
-  - *Mastered*: used the technique in 5+ real games without a hint
-- [ ] `PassportView.tsx`: full-screen visual grid of all 9 techniques as stamp slots
-  - Locked stamps are greyed out with a padlock
-  - Learned stamps are filled with the technique name + icon
-  - Mastered stamps get a gold border
-- [ ] Passport tab in navigation (replaces old Learn tab — Learn lives inside Passport)
-- [ ] `PassportShareCard.tsx`: generate a shareable image "I've mastered 6/9 Sudoku techniques on AidSudoku"
-- [ ] Puzzle filter: on the new game screen, players can pick "show me puzzles that need X-Wing" to practice a specific technique
+Each with lesson + practice board + A-ha! detection, same pattern as Phase 2.
 
-**For each technique (inside Passport):**
-- [ ] Written explanation with visual diagram (SVG or CSS-based)
-- [ ] Interactive practice board: a small puzzle where only that technique is needed
-- [ ] "Try it" mode: app guides you to find the relevant cells, celebrates when found
-- [ ] Completing the lesson flips technique status from *locked* to *learned*
-
-**A-ha! Recognition System:**
-- [ ] `techniqueDetector.ts` (built in Phase 1): fires a named event when a move matches a known technique
-- [ ] `useAhaMoment.ts`: subscribes to detector events, cross-references with `passportStore`
-  - If technique is *learned* and player uses it in a real game: fire A-ha! toast + increment `use_count`
-  - At 5 real-game uses: promote to *mastered*, trigger a bigger celebration (confetti + passport stamp animation)
-  - If technique is *locked* and player stumbles into it: show a "You discovered X-Wing!" prompt leading to the lesson
-- [ ] A-ha! toast component: subtle banner mid-game ("Nice — you just used Pointing Pairs! 🎯"), non-disruptive
-- [ ] All A-ha! events write to `passport_progress` table in Supabase
-
-**Solve Report:**
-- [ ] `useSolveReport.ts`: builds the report object on puzzle completion from `gameStore` state
-  - Techniques used this solve (from detector event log)
-  - Time vs. personal best for this technique set
-  - Hints used, errors made
-  - Star rating (3 stars = no hints, no errors; 2 stars = 1–2 hints or errors; 1 star = completed)
-- [ ] `SolveReport.tsx`: animated modal after win screen fades
-  - Headline: "You solved it in 4:23 ⭐⭐⭐"
-  - Technique breakdown: chips for each technique used with a count badge
-  - Comparison line: "18% faster than your average for this difficulty"
-  - CTA: "Learn X-Wing" button if a new technique appeared and isn't yet in passport
-- [ ] Solve reports stored in `solve_attempts.techniques_used` for historical stats
-
-**Coach / Walkthrough mode:**
-- [ ] Available on any puzzle — toggle "Coach" in game controls
-- [ ] Uses `techniques.ts` solver to find the next logical move
-- [ ] Highlights the cells involved and explains the technique being applied
-- [ ] User can step forward one move at a time
-
-**Hint system (upgrade from Phase 1):**
-- [ ] Hints now explain WHY: "This cell must be 7 — it's the only number that can go in this row" (with cells highlighted)
-- [ ] Track hints used (shown in post-game stats, Solve Report, and leaderboard)
+**Account Upgrade**
+- [ ] Settings: *"Save your progress across devices"* — links anonymous ID to Apple Sign-In or Google
+- [ ] `PassportShareCard.tsx`: generate a shareable passport image (gated as a natural engagement feature)
+- [ ] Puzzle filter on new game screen: *"Show me puzzles that use X-Wing"*
 
 ---
 
-### Phase 5 — Capacitor + App Store Submission
-> Goal: Ship on the Apple App Store.
+### Phase 5 — Ship
+> Goal: On the Apple App Store.
 
-- [ ] Install Capacitor: `npm install @capacitor/core @capacitor/cli @capacitor/ios`
-- [ ] Configure `capacitor.config.ts`: appId, appName, webDir
-- [ ] `npx cap add ios` — generates the Xcode project
-- [ ] Native plugins to add:
-  - `@capacitor/haptics`: vibration feedback on number entry and win
-  - `@capacitor/status-bar`: match status bar color to app theme
+- [ ] `npm install @capacitor/core @capacitor/cli @capacitor/ios`
+- [ ] Configure `capacitor.config.ts`: appId (`com.aidedmarketing.aidsudoku`), appName, webDir
+- [ ] `npx cap add ios` — generates Xcode project
+- [ ] Native plugins:
+  - `@capacitor/haptics`: vibration on number entry, A-ha! moments, win
+  - `@capacitor/status-bar`: match status bar to app theme
   - `@capacitor/splash-screen`: branded launch screen
-  - `@capacitor/push-notifications`: daily puzzle reminder ("Today's puzzle is ready!")
-  - `@capacitor/share`: native share sheet for leaderboard share card
-- [ ] `useHaptics.ts` hook: wraps Capacitor haptics with web fallback (none)
-- [ ] Safe area handling: `env(safe-area-inset-*)` in CSS for iPhone notch + Dynamic Island
+  - `@capacitor/push-notifications`: daily puzzle reminder push
+  - `@capacitor/share`: native share sheet for Solve Report + passport cards
+- [ ] `useHaptics.ts`: wraps Capacitor haptics with a silent web fallback
+- [ ] Safe area: `env(safe-area-inset-*)` in CSS for notch + Dynamic Island
 - [ ] App Store assets:
-  - App icon: 1024x1024 (no transparency, no rounded corners — Apple adds those)
-  - Screenshots: 6.9" (iPhone 16 Pro Max), 6.5" (iPhone 11 Pro Max), iPad Pro
+  - Icon: 1024×1024, no transparency (Apple rounds corners)
+  - Screenshots: 6.9" (iPhone 16 Pro Max), 6.5" (iPhone 11 Pro Max), iPad Pro 12.9"
   - App description, keywords, privacy policy URL
-- [ ] Apple Sign-In: required if any other social login is offered; integrate via `@capacitor-community/apple-sign-in`
-- [ ] TestFlight: internal testing → external beta → App Store review
-- [ ] App Store Connect: configure pricing (Free), age rating (4+), categories (Games > Puzzle)
+- [ ] Apple Sign-In via `@capacitor-community/apple-sign-in` (required if Google auth is offered)
+- [ ] TestFlight: internal → external beta → App Store review
+- [ ] App Store Connect: Free, age 4+, category: Games > Puzzle
 
 ---
 
@@ -443,13 +460,13 @@ The app is designed to support multiple monetization models without requiring a 
 
 ## Development Milestones
 
-| Phase | Deliverable | Estimated Complexity |
-|---|---|---|
-| 1 | Fully playable local game + technique detector foundation | High (core engine) |
-| 2 | PWA, installable, polished | Medium |
-| 3 | Daily puzzle + leaderboard + stats + Solve Report | High (backend) |
-| 4 | Technique Passport + A-ha! system + Coach mode + full Learn section | High (content + UX) |
-| 5 | Capacitor iOS + App Store | Medium (config heavy) |
+| Phase | Name | Deliverable | Complexity |
+|---|---|---|---|
+| 1 | **Identity** | Game engine + Passport skeleton + Solve Report v1 + A-ha! (2 techniques) + Onboarding | High |
+| 2 | **Learn** | First 4 technique lessons + Coach mode + upgraded hints + full A-ha! system | High |
+| 3 | **Polish** | PWA + animations + responsive layout + settings + offline | Medium |
+| 4 | **Scale** | Supabase + Daily Puzzle + leaderboard + Solve Report v2 + advanced techniques 5–9 | High |
+| 5 | **Ship** | Capacitor + native plugins + App Store submission | Medium |
 
 ---
 
