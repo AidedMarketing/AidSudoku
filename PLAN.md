@@ -102,7 +102,8 @@ This is the dopamine hit that no other app delivers. It makes players feel genui
 │   │   │   └── SolveScore.tsx       # Star rating + time vs. personal best
 │   │   ├── daily/
 │   │   │   ├── DailyBanner.tsx      # Today's puzzle entry card on Home
-│   │   │   ├── Leaderboard.tsx      # Ranked times for today's puzzle
+│   │   │   ├── DailyModeSelect.tsx  # Upfront choice screen: Leaderboard vs. Practice (with lock-out warning)
+│   │   │   ├── Leaderboard.tsx      # Ranked times for today's puzzle (leaderboard attempts only)
 │   │   │   └── ShareCard.tsx        # Shareable result image/text (Wordle-style)
 │   │   └── ui/
 │   │       ├── Button.tsx
@@ -132,7 +133,7 @@ This is the dopamine hit that no other app delivers. It makes players feel genui
 │   │   └── settingsStore.ts    # Theme, sound, haptics, notification prefs
 │   └── hooks/
 │       ├── useGame.ts            # Game logic orchestration
-│       ├── usePuzzleOfDay.ts     # Fetch + cache today's puzzle + leaderboard
+│       ├── usePuzzleOfDay.ts     # Fetch + cache today's puzzle; detect if user has already chosen a mode today
 │       ├── useTimer.ts           # Pause/resume stopwatch
 │       ├── useHaptics.ts         # Capacitor haptics (vibrate on number entry, win, error)
 │       ├── useAhaMoment.ts       # Subscribes to techniqueDetector, triggers A-ha! toast + passport update
@@ -156,25 +157,39 @@ CREATE TABLE puzzles (
   solution         TEXT NOT NULL,         -- 81-char string, full answer
   difficulty       TEXT NOT NULL,         -- 'easy' | 'medium' | 'hard' | 'expert'
   technique_tags   TEXT[] NOT NULL,       -- e.g. ['naked_singles', 'hidden_pairs', 'x_wing']
-  daily_date       DATE UNIQUE,           -- NULL for generated puzzles, date for POTD
+  daily_date       DATE UNIQUE,           -- NULL for generated puzzles, date for POTD (always Hard difficulty)
   created_at       TIMESTAMPTZ DEFAULT now()
 );
+
+-- Enforce: daily puzzles must always be Hard difficulty
+ALTER TABLE puzzles ADD CONSTRAINT daily_must_be_hard
+  CHECK (daily_date IS NULL OR difficulty = 'hard');
 
 -- Users (anonymous IDs auto-created, upgraded when user opts in)
 -- Supabase Auth handles this natively — no extra table needed for MVP
 
 -- Solve attempts (stats + leaderboard source)
 CREATE TABLE solve_attempts (
-  id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id          UUID REFERENCES auth.users(id),
-  puzzle_id        UUID REFERENCES puzzles(id),
-  time_seconds     INT NOT NULL,
-  completed        BOOLEAN DEFAULT false,
-  hints_used       INT DEFAULT 0,
-  errors_made      INT DEFAULT 0,
-  techniques_used  TEXT[] DEFAULT '{}',   -- techniques the detector fired during this solve
-  created_at       TIMESTAMPTZ DEFAULT now()
+  id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id               UUID REFERENCES auth.users(id),
+  puzzle_id             UUID REFERENCES puzzles(id),
+  time_seconds          INT NOT NULL,
+  completed             BOOLEAN DEFAULT false,
+  hints_used            INT DEFAULT 0,
+  errors_made           INT DEFAULT 0,
+  techniques_used       TEXT[] DEFAULT '{}',   -- techniques the detector fired during this solve
+  -- Daily puzzle mode (NULL for non-daily puzzles)
+  is_leaderboard_attempt BOOLEAN,              -- TRUE = competing for the leaderboard, FALSE = practice mode
+  practice_difficulty    TEXT,                 -- NULL for leaderboard attempts; 'easy'|'medium'|'hard'|'expert' for practice
+  started_at            TIMESTAMPTZ DEFAULT now(), -- row inserted when player STARTS (locks out the other mode for the day)
+  created_at            TIMESTAMPTZ DEFAULT now()
 );
+
+-- UNIQUE constraint ensures one daily attempt per user per day
+-- (prevents starting then abandoning and trying the other mode)
+CREATE UNIQUE INDEX one_daily_attempt_per_user
+  ON solve_attempts (user_id, puzzle_id)
+  WHERE puzzle_id IN (SELECT id FROM puzzles WHERE daily_date IS NOT NULL);
 
 -- Passport progress (one row per user per technique)
 CREATE TABLE passport_progress (
@@ -187,7 +202,9 @@ CREATE TABLE passport_progress (
   UNIQUE (user_id, technique)
 );
 
--- Leaderboard view (daily puzzle only, top 100 by time)
+-- Leaderboard view (daily puzzle leaderboard attempts only, top 100 by time)
+-- Practice mode attempts are excluded — players opt out of the leaderboard when
+-- they choose Practice Mode at the start of the daily puzzle.
 CREATE VIEW daily_leaderboard AS
   SELECT
     sa.user_id,
@@ -199,7 +216,8 @@ CREATE VIEW daily_leaderboard AS
   FROM solve_attempts sa
   JOIN puzzles p ON p.id = sa.puzzle_id
   WHERE p.daily_date IS NOT NULL
-    AND sa.completed = true;
+    AND sa.completed = true
+    AND sa.is_leaderboard_attempt = true;
 ```
 
 ---
@@ -320,10 +338,26 @@ For each:
 - [ ] Cloud sync: `passportStore` and `statsStore` write to Supabase on every change
 
 **Daily Puzzle + Leaderboard**
-- [ ] Seed script: generate and insert 365 daily puzzles tagged by technique requirements
-- [ ] Daily Puzzle page: fetch by `daily_date = TODAY`, one attempt per user per day
-- [ ] Real-time leaderboard via Supabase Realtime subscriptions
-- [ ] Share card: *"I solved today's AidSudoku in 4:23 ⭐⭐⭐"* + shareable link
+
+> **Design decision:** one puzzle per day, always Hard difficulty. Players make an upfront,
+> irrevocable choice between two modes at the start of each day — no switching after.
+
+- [ ] Seed script: generate and insert 365 daily puzzles, all at **Hard** difficulty, tagged by technique requirements
+- [ ] `DailyModeSelect.tsx`: the gate screen shown before the daily puzzle starts
+  - Shown only if the player has not yet made a mode choice for today
+  - **"Play for the Leaderboard"** — Hard difficulty, timed, ranked, competitive
+  - **"Practice Mode"** — player selects difficulty (Easy / Medium / Hard / Expert), not ranked
+  - Tapping "Practice Mode" triggers a confirmation bottom sheet:
+    *"If you play in Practice Mode you won't appear on today's leaderboard. This can't be undone."*
+    with **"Got it — Practice Mode"** and **"Back"** buttons
+  - On confirmation, a `solve_attempts` row is immediately inserted with `is_leaderboard_attempt = false` and the chosen `practice_difficulty`, locking them out of the leaderboard for that day
+  - On selecting Leaderboard mode, the row is inserted with `is_leaderboard_attempt = true`, same lock-out principle
+- [ ] `usePuzzleOfDay.ts`: fetch today's puzzle by `daily_date = TODAY`; query whether the user already has a `solve_attempts` row for it (to determine if they've already chosen and skip the gate screen)
+- [ ] Real-time leaderboard via Supabase Realtime subscriptions (leaderboard attempts only)
+- [ ] Post-solve behaviour:
+  - Leaderboard attempt: show rank + "You beat X% of players today" + share card
+  - Practice attempt: show Solve Report only, no rank, badge *"Practice Mode"* on the result
+- [ ] Share card: *"I solved today's AidSudoku in 4:23 ⭐⭐⭐"* + shareable link (leaderboard attempts only)
 
 **Solve Report v2**
 - [ ] Comparison line now live: *"18% faster than your average for this difficulty"*
@@ -386,6 +420,13 @@ Bottom Tab Bar:
 ├── Passport     — Technique skill map, lessons, mastery progress (★ the signature tab)
 ├── Stats        — Personal stats, streaks, solve history
 └── Settings     — Account, appearance, gameplay preferences
+
+Daily Screen Flow:
+├── [Not yet played today] → DailyModeSelect gate
+│   ├── "Play for the Leaderboard" → starts Hard puzzle, timer running, leaderboard eligible
+│   └── "Practice Mode" → difficulty picker → confirmation bottom sheet → starts puzzle, leaderboard locked for today
+├── [Already played today — leaderboard] → result + rank + share card + leaderboard table
+└── [Already played today — practice] → Solve Report + "Practice Mode" badge, no rank shown
 
 Game Screen (full-screen modal over nav):
 ├── Header: difficulty + timer + pause
