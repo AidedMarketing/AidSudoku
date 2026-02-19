@@ -8,10 +8,9 @@ import { getHint } from '../lib/sudoku/solver'
 import { isCellValid } from '../lib/sudoku/validator'
 
 export function useGame() {
-  const store         = useGameStore()
-  const showErrors    = useSettingsStore(s => s.showErrors)
-  const autoRemoveNotes = useSettingsStore(s => s.autoRemoveNotes)
-  const { vibrate }   = useHaptics()
+  const store       = useGameStore()
+  const showErrors  = useSettingsStore(s => s.showErrors)
+  const { vibrate } = useHaptics()
 
   const handleCellPress = useCallback((idx: number) => {
     store.selectCell(idx === store.selectedCell ? null : idx)
@@ -26,8 +25,8 @@ export function useGame() {
       return
     }
 
-    const { board, puzzle, selectedCell } = store
-    if (!puzzle) return
+    const { board, selectedCell } = store
+    if (!store.puzzle) return
 
     const isValid = isCellValid(board, selectedCell, num)
     if (!isValid && showErrors) {
@@ -36,13 +35,9 @@ export function useGame() {
       vibrate('medium')
     }
 
+    // enterNumber handles auto-remove notes internally via settingsStore
     store.enterNumber(num)
-
-    // Auto-remove notes for peers if setting is on
-    if (autoRemoveNotes && isValid) {
-      // Notes cleanup is handled inside enterNumber via peer resolution (future enhancement)
-    }
-  }, [store, showErrors, autoRemoveNotes, vibrate])
+  }, [store, showErrors, vibrate])
 
   const handleHint = useCallback(() => {
     const { puzzle, board, initialClues } = store

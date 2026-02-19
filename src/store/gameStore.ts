@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Difficulty, GameStatus, PuzzleData, TechniqueName } from '../types'
+import { peers } from '../lib/sudoku/generator'
+import { useSettingsStore } from './settingsStore'
 
 interface GameState {
   // Puzzle
@@ -103,9 +105,21 @@ export const useGameStore = create<GameState>()(
         newBoard[selectedCell] = String(num)
         const newBoardStr = newBoard.join('')
 
-        // Clear notes for peers when a number is placed
+        // Always clear the selected cell's own notes
         const newNotes = { ...notes }
         delete newNotes[selectedCell]
+
+        // Auto-remove notes: strip `num` from all peer cells when the setting is on
+        const { autoRemoveNotes } = useSettingsStore.getState()
+        if (autoRemoveNotes) {
+          for (const peerIdx of peers(selectedCell)) {
+            if (newNotes[peerIdx]?.includes(num)) {
+              const pruned = newNotes[peerIdx].filter(n => n !== num)
+              if (pruned.length === 0) delete newNotes[peerIdx]
+              else newNotes[peerIdx] = pruned
+            }
+          }
+        }
 
         // Check win
         const isWon = puzzle && newBoardStr === puzzle.solution

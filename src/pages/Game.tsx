@@ -80,7 +80,7 @@ export function Game() {
       </div>
 
       {/* Board area */}
-      <div className="flex-1 flex flex-col justify-center items-center gap-4 w-full px-2 py-2">
+      <div className="flex-1 flex flex-col justify-center items-center gap-4 w-full px-2 py-2 pb-safe">
         <AnimatePresence>
           {gameStatus === 'paused' && (
             <motion.div
