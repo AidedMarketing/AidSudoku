@@ -3,15 +3,14 @@ import { NavLink } from 'react-router-dom'
 interface Tab {
   to: string
   label: string
-  icon: string  // emoji or SVG path
 }
 
 const TABS: Tab[] = [
-  { to: '/',         label: 'Home',     icon: '⊞' },
-  { to: '/daily',    label: 'Daily',    icon: '📅' },
-  { to: '/passport', label: 'Passport', icon: '🗺' },
-  { to: '/stats',    label: 'Stats',    icon: '📊' },
-  { to: '/settings', label: 'Settings', icon: '⚙' },
+  { to: '/',         label: 'Home'     },
+  { to: '/daily',    label: 'Daily'    },
+  { to: '/passport', label: 'Passport' },
+  { to: '/stats',    label: 'Stats'    },
+  { to: '/settings', label: 'Settings' },
 ]
 
 export function Tabs() {
@@ -26,15 +25,14 @@ export function Tabs() {
           to={tab.to}
           end={tab.to === '/'}
           className={({ isActive }) =>
-            `flex-1 flex flex-col items-center py-2 gap-0.5 text-xs font-medium transition-colors ${
+            `flex-1 flex items-center justify-center py-3 text-[11px] font-semibold tracking-wide transition-colors ${
               isActive
                 ? 'text-accent'
                 : 'text-gray-400 dark:text-gray-500'
             }`
           }
         >
-          <span className="text-xl leading-none">{tab.icon}</span>
-          <span>{tab.label}</span>
+          {tab.label}
         </NavLink>
       ))}
     </nav>

@@ -12,7 +12,7 @@ export function TechniqueBreakdown({ techniques }: Props) {
   if (techniques.length === 0) {
     return (
       <p className="text-sm text-gray-400 text-center py-2">
-        No techniques detected — keep playing to build your passport!
+        No techniques detected in this solve.
       </p>
     )
   }

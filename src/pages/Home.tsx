@@ -8,10 +8,10 @@ import { generatePuzzle } from '../lib/sudoku/generator'
 import type { Difficulty } from '../types'
 
 const DIFFICULTIES: { value: Difficulty; label: string; desc: string }[] = [
-  { value: 'easy',   label: 'Easy',   desc: '36+ clues — great for building confidence' },
-  { value: 'medium', label: 'Medium', desc: '27–35 clues — a satisfying challenge' },
-  { value: 'hard',   label: 'Hard',   desc: '22–26 clues — requires logic techniques' },
-  { value: 'expert', label: 'Expert', desc: '17–21 clues — for seasoned solvers' },
+  { value: 'easy',   label: 'Easy',   desc: '36+ clues — simpler deduction chains' },
+  { value: 'medium', label: 'Medium', desc: '27–35 clues — mixed techniques needed' },
+  { value: 'hard',   label: 'Hard',   desc: '22–26 clues — advanced logic required' },
+  { value: 'expert', label: 'Expert', desc: '17–21 clues — minimal givens, maximum depth' },
 ]
 
 export function Home() {

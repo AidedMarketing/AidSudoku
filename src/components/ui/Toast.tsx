@@ -2,11 +2,10 @@ import { AnimatePresence, motion } from 'framer-motion'
 
 interface Props {
   message: string | null
-  isNew?: boolean
   id?: string | number
 }
 
-export function Toast({ message, isNew, id }: Props) {
+export function Toast({ message, id }: Props) {
   return (
     <AnimatePresence>
       {message && (
@@ -18,9 +17,7 @@ export function Toast({ message, isNew, id }: Props) {
           exit={{ opacity: 0, y: -16 }}
         >
           <div className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-5 py-3 rounded-2xl shadow-lg text-sm font-medium max-w-xs text-center">
-            {isNew && <span className="mr-1">✨</span>}
             {message}
-            {isNew && <span className="ml-1">🎯</span>}
           </div>
         </motion.div>
       )}

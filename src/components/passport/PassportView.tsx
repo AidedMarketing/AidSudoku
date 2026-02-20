@@ -47,7 +47,7 @@ export function PassportView() {
       </div>
 
       <p className="text-xs text-center text-gray-400 dark:text-gray-600">
-        Tap a stamp to see its lesson. Play puzzles to earn more.
+        Tap a free lesson to open it. Advanced techniques coming soon.
       </p>
     </div>
   )

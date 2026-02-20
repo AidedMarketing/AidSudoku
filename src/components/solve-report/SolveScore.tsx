@@ -9,10 +9,10 @@ interface Props {
 export function SolveScore({ stars, timeSeconds, hintsUsed }: Props) {
   return (
     <div className="flex flex-col items-center gap-3">
-      <div className="flex gap-1 text-4xl">
+      <div className="flex gap-1.5 text-3xl text-accent">
         {[1, 2, 3].map(s => (
           <span key={s} className={s <= stars ? 'opacity-100' : 'opacity-20'}>
-            ⭐
+            ★
           </span>
         ))}
       </div>
