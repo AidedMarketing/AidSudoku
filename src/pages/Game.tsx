@@ -115,11 +115,10 @@ export function Game() {
         id={ahaMoment?.id}
         message={
           !ahaMoment ? null :
-          ahaMoment.type === 'mastered'   ? `You've mastered ${ahaMoment.label}! ⭐` :
-          ahaMoment.type === 'discovered' ? `You discovered ${ahaMoment.label}! 🎯` :
-          `Nice — you used ${ahaMoment.label}! 🎯`
+          ahaMoment.type === 'mastered'   ? `${ahaMoment.label} — mastered` :
+          ahaMoment.type === 'discovered' ? `${ahaMoment.label} — first use` :
+          ahaMoment.label
         }
-        isNew={ahaMoment?.type === 'discovered' || ahaMoment?.type === 'mastered'}
       />
 
       {/* Solve Report */}

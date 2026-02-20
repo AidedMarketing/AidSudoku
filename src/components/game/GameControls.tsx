@@ -19,9 +19,9 @@ export function GameControls() {
   const controls: ControlBtn[] = [
     { label: 'Undo',  icon: '↩',  action: handleUndo },
     { label: 'Erase', icon: '⌫',  action: handleErase },
-    { label: 'Notes', icon: '✏️', action: toggleNotesMode, active: isNotesMode },
-    { label: 'Hint',  icon: '💡', action: handleHint },
-    { label: 'Coach', icon: '🎓', action: toggleCoachMode, active: coachMode },
+    { label: 'Notes', icon: '✎',  action: toggleNotesMode, active: isNotesMode },
+    { label: 'Hint',  icon: '?',  action: handleHint },
+    { label: 'Coach', icon: '◎',  action: toggleCoachMode, active: coachMode },
   ]
 
   return (
@@ -36,7 +36,7 @@ export function GameControls() {
               : 'text-gray-500 dark:text-gray-400 active:bg-gray-100 dark:active:bg-gray-800'
           }`}
         >
-          <span className="text-2xl leading-none">{c.icon}</span>
+          <span className="text-xl leading-none font-light">{c.icon}</span>
           <span className="text-[10px] font-medium">{c.label}</span>
         </button>
       ))}

@@ -16,25 +16,23 @@ const statusStyles: Record<PassportStatus, string> = {
 }
 
 const statusIcon: Record<PassportStatus, string> = {
-  locked:   '🔒',
-  learned:  '📖',
-  mastered: '✦',
+  locked:   '○',
+  learned:  '✓',
+  mastered: '★',
 }
 
-export function PassportStamp({ technique, status, useCount, onPress }: Props) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function PassportStamp({ technique, status, useCount: _useCount, onPress }: Props) {
   return (
     <motion.button
       className={`flex flex-col items-center gap-1 p-3 rounded-2xl border-2 text-center ${statusStyles[status]}`}
       whileTap={{ scale: 0.95 }}
       onClick={onPress}
     >
-      <span className="text-2xl">{statusIcon[status]}</span>
+      <span className="text-xl leading-none">{statusIcon[status]}</span>
       <span className="text-[10px] font-semibold leading-tight">
         {TECHNIQUE_LABELS[technique]}
       </span>
-      {status !== 'locked' && (
-        <span className="text-[9px] opacity-60">×{useCount}</span>
-      )}
     </motion.button>
   )
 }

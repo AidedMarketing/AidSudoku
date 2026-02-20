@@ -56,7 +56,7 @@ export function PracticeBoard({ technique, difficulty, onMastered }: Props) {
       if (prev[i] !== board[i] && board[i] !== '0') {
         const result = detectTechnique(prev, board, i)
         if (result && result.technique === technique) {
-          showToast(`Nice — you used ${TECHNIQUE_LABELS[technique]}! 🎯`)
+          showToast(`${TECHNIQUE_LABELS[technique]} applied`)
           onMastered?.()
         }
         break
@@ -89,7 +89,7 @@ export function PracticeBoard({ technique, difficulty, onMastered }: Props) {
 
     if (newBoardStr === solution) {
       setComplete(true)
-      showToast('Puzzle complete! Great work.')
+      showToast('Puzzle complete.')
     }
   }, [selected, board, clues, solution])
 

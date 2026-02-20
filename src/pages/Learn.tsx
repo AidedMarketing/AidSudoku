@@ -9,9 +9,9 @@ import { ALL_TECHNIQUES, TECHNIQUE_LABELS } from '../types'
 import type { TechniqueName } from '../types'
 
 const STATUS_ICON: Record<string, string> = {
-  mastered: '⭐',
+  mastered: '★',
   learned:  '✓',
-  locked:   '🔒',
+  locked:   '○',
 }
 
 const COMING_SOON: TechniqueName[] = ALL_TECHNIQUES.filter(
@@ -26,7 +26,7 @@ export function Learn() {
     <div className="px-5 pt-10 pb-28 min-h-screen bg-white dark:bg-[#121212]">
       <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Learn</h1>
       <p className="text-sm text-gray-400 mb-8">
-        Master techniques to unlock your full potential.
+        Study the logic behind every solve.
       </p>
 
       {/* Free techniques */}
@@ -35,7 +35,7 @@ export function Learn() {
       </h2>
       <div className="flex flex-col gap-2 mb-8">
         {FREE_TECHNIQUES.map((t, idx) => {
-          const { status, useCount } = passport[t]
+          const { status } = passport[t]
           const lesson = LESSONS[t]
           if (!lesson) return null
 
@@ -72,7 +72,7 @@ export function Learn() {
                   status === 'learned'  ? 'bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-300' :
                                           'text-gray-400'
                 }`}>
-                  {status === 'locked' ? 'Start' : `${status} ×${useCount}`}
+                  {status === 'locked' ? 'Start' : status === 'mastered' ? 'Mastered' : 'Learned'}
                 </span>
                 <span className="text-gray-300 dark:text-gray-600 text-xs">→</span>
               </div>
