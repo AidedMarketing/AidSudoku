@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { SudokuBoard } from '../components/game/SudokuBoard'
@@ -6,18 +6,24 @@ import { NumberPad } from '../components/game/NumberPad'
 import { GameControls } from '../components/game/GameControls'
 import { GameTimer } from '../components/game/GameTimer'
 import { SolveReport } from '../components/solve-report/SolveReport'
+import { CoachOverlay } from '../components/learn/CoachOverlay'
 import { Toast } from '../components/ui/Toast'
 import { useGameStore } from '../store/gameStore'
 import { useTimer } from '../hooks/useTimer'
 import { useAhaMoment } from '../hooks/useAhaMoment'
 import { useSolveReport } from '../hooks/useSolveReport'
 import { useStatsStore } from '../store/statsStore'
+import { useGame } from '../hooks/useGame'
+import { getNextCoachStep } from '../lib/sudoku/techniques'
 
 export function Game() {
-  const navigate    = useNavigate()
-  const gameStatus  = useGameStore(s => s.gameStatus)
-  const resetGame   = useGameStore(s => s.resetGame)
-  const recordSolve = useStatsStore(s => s.recordSolve)
+  const navigate       = useNavigate()
+  const gameStatus     = useGameStore(s => s.gameStatus)
+  const resetGame      = useGameStore(s => s.resetGame)
+  const coachMode      = useGameStore(s => s.coachMode)
+  const board          = useGameStore(s => s.board)
+  const recordSolve    = useStatsStore(s => s.recordSolve)
+  const { handleHint } = useGame()
 
   // Drive the stopwatch
   useTimer()
@@ -25,13 +31,25 @@ export function Game() {
   const { ahaMoment } = useAhaMoment()
   const report = useSolveReport()
 
+  // Compute coach step when coachMode is on
+  const coachStep = useMemo(
+    () => (coachMode && board ? getNextCoachStep(board) : null),
+    [coachMode, board],
+  )
+
+  const coachHighlight = useMemo(
+    () => coachStep ? new Set(coachStep.highlightCells) : undefined,
+    [coachStep],
+  )
+  const coachTarget = coachStep?.cellIndex ?? null
+
   // Redirect to home if no active game
   useEffect(() => {
     if (gameStatus === 'idle') navigate('/', { replace: true })
   }, [gameStatus, navigate])
 
-  // Record the solve when the game is won
-  const hasRecordedRef = { current: false }
+  // Record the solve when the game is won (ref persists across re-renders)
+  const hasRecordedRef = useRef(false)
   useEffect(() => {
     if (gameStatus === 'won' && report && !hasRecordedRef.current) {
       hasRecordedRef.current = true
@@ -61,8 +79,8 @@ export function Game() {
         <GameTimer />
       </div>
 
-      {/* Board */}
-      <div className="flex-1 flex flex-col justify-center items-center gap-5 w-full px-2 py-4">
+      {/* Board area */}
+      <div className="flex-1 flex flex-col justify-center items-center gap-4 w-full px-2 py-2 pb-safe">
         <AnimatePresence>
           {gameStatus === 'paused' && (
             <motion.div
@@ -76,15 +94,32 @@ export function Game() {
           )}
         </AnimatePresence>
 
-        <SudokuBoard />
+        <SudokuBoard coachHighlight={coachHighlight} coachTarget={coachTarget} />
+
+        {/* Coach overlay — shown between board and controls when coachMode is on */}
+        <AnimatePresence>
+          {coachMode && (
+            <CoachOverlay
+              step={coachStep}
+              onApply={handleHint}
+            />
+          )}
+        </AnimatePresence>
+
         <GameControls />
         <NumberPad />
       </div>
 
       {/* A-ha! Toast */}
       <Toast
-        message={ahaMoment ? `Nice — you used ${ahaMoment.label}!` : null}
-        isNew={ahaMoment?.isNew}
+        id={ahaMoment?.id}
+        message={
+          !ahaMoment ? null :
+          ahaMoment.type === 'mastered'   ? `You've mastered ${ahaMoment.label}! ⭐` :
+          ahaMoment.type === 'discovered' ? `You discovered ${ahaMoment.label}! 🎯` :
+          `Nice — you used ${ahaMoment.label}! 🎯`
+        }
+        isNew={ahaMoment?.type === 'discovered' || ahaMoment?.type === 'mastered'}
       />
 
       {/* Solve Report */}

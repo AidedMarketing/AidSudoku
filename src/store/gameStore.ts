@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Difficulty, GameStatus, PuzzleData, TechniqueName } from '../types'
+import { peers } from '../lib/sudoku/generator'
+import { useSettingsStore } from './settingsStore'
 
 interface GameState {
   // Puzzle
@@ -27,6 +29,9 @@ interface GameState {
   errorsMode: boolean
   techniquesDetected: TechniqueName[]
 
+  // Coach mode
+  coachMode: boolean
+
   // Actions
   startGame: (puzzle: PuzzleData) => void
   selectCell: (idx: number | null) => void
@@ -35,6 +40,7 @@ interface GameState {
   erase: () => void
   undo: () => void
   toggleNotesMode: () => void
+  toggleCoachMode: () => void
   applyHint: (cellIdx: number, value: number) => void
   addTechnique: (t: TechniqueName) => void
   tickTimer: () => void
@@ -62,6 +68,7 @@ export const useGameStore = create<GameState>()(
       hintsUsed: 0,
       errorsMode: true,
       techniquesDetected: [],
+      coachMode: false,
 
       startGame(puzzle) {
         set({
@@ -78,6 +85,7 @@ export const useGameStore = create<GameState>()(
           difficulty: puzzle.difficulty,
           hintsUsed: 0,
           techniquesDetected: [],
+          coachMode: false,
         })
       },
 
@@ -97,9 +105,21 @@ export const useGameStore = create<GameState>()(
         newBoard[selectedCell] = String(num)
         const newBoardStr = newBoard.join('')
 
-        // Clear notes for peers when a number is placed
+        // Always clear the selected cell's own notes
         const newNotes = { ...notes }
         delete newNotes[selectedCell]
+
+        // Auto-remove notes: strip `num` from all peer cells when the setting is on
+        const { autoRemoveNotes } = useSettingsStore.getState()
+        if (autoRemoveNotes) {
+          for (const peerIdx of peers(selectedCell)) {
+            if (newNotes[peerIdx]?.includes(num)) {
+              const pruned = newNotes[peerIdx].filter(n => n !== num)
+              if (pruned.length === 0) delete newNotes[peerIdx]
+              else newNotes[peerIdx] = pruned
+            }
+          }
+        }
 
         // Check win
         const isWon = puzzle && newBoardStr === puzzle.solution
@@ -157,6 +177,10 @@ export const useGameStore = create<GameState>()(
         set(s => ({ isNotesMode: !s.isNotesMode }))
       },
 
+      toggleCoachMode() {
+        set(s => ({ coachMode: !s.coachMode }))
+      },
+
       applyHint(cellIdx, value) {
         const { board, notes, history } = get()
         history.push({ board, notes: { ...notes } })
@@ -210,6 +234,7 @@ export const useGameStore = create<GameState>()(
           gameStatus: 'idle',
           hintsUsed: 0,
           techniquesDetected: [],
+          coachMode: false,
         })
       },
     }),

@@ -1,10 +1,16 @@
+import { useMemo } from 'react'
 import { SudokuCell } from './SudokuCell'
 import { useGame } from '../../hooks/useGame'
 import { useSettingsStore } from '../../store/settingsStore'
 import { getConflicts } from '../../lib/sudoku/validator'
 import { rowOf, colOf, boxOf } from '../../lib/sudoku/generator'
 
-export function SudokuBoard() {
+interface Props {
+  coachHighlight?: Set<number>
+  coachTarget?: number | null
+}
+
+export function SudokuBoard({ coachHighlight, coachTarget }: Props = {}) {
   const {
     board, initialClues, selectedCell, notes,
     handleCellPress, puzzle,
@@ -12,14 +18,19 @@ export function SudokuBoard() {
 
   const showErrors = useSettingsStore(s => s.showErrors)
 
+  // Memoised so the O(81×20) scan only runs when board or error-setting changes
+  const conflicts = useMemo(() => {
+    if (!board || !showErrors) return new Set<number>()
+    return new Set(
+      [...Array(81).keys()].flatMap(i =>
+        board[i] !== '0' ? [...getConflicts(board, i)] : []
+      )
+    )
+  }, [board, showErrors])
+
   if (!puzzle || !board) return null
 
   const selectedValue = selectedCell !== null ? board[selectedCell] : null
-  const conflicts = showErrors
-    ? new Set([...Array(81).keys()].flatMap(i =>
-        board[i] !== '0' ? [...getConflicts(board, i)] : []
-      ))
-    : new Set<number>()
 
   return (
     <div
@@ -45,8 +56,9 @@ export function SudokuBoard() {
           value === selectedValue &&
           !isSelected
 
-        const isConflict  = conflicts.has(i)
-        const isHint      = false  // tracked in a future enhancement
+        const isConflict      = conflicts.has(i)
+        const isCoachTarget   = coachTarget === i
+        const isCoachRelated  = !isCoachTarget && (coachHighlight?.has(i) ?? false)
 
         return (
           <SudokuCell
@@ -54,11 +66,11 @@ export function SudokuBoard() {
             idx={i}
             value={value}
             isGiven={isGiven}
-            isSelected={isSelected}
+            isSelected={isSelected || isCoachRelated}
             isSameNumber={isSameNumber}
             isRelated={isRelated}
             isConflict={isConflict}
-            isHint={isHint}
+            isHint={isCoachTarget}
             notes={notes[i] ?? []}
             onPress={handleCellPress}
           />

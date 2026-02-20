@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background -->
+  <rect width="512" height="512" rx="112" fill="#6AAD64"/>
+
+  <!-- 3x3 Sudoku grid lines (white) -->
+  <!-- Outer border -->
+  <rect x="88" y="88" width="336" height="336" rx="8" fill="none" stroke="white" stroke-width="12"/>
+  <!-- Inner cell lines (thin) -->
+  <!-- Vertical thin lines -->
+  <line x1="200" y1="88" x2="200" y2="424" stroke="white" stroke-width="4" opacity="0.5"/>
+  <line x1="312" y1="88" x2="312" y2="424" stroke="white" stroke-width="4" opacity="0.5"/>
+  <!-- Horizontal thin lines -->
+  <line x1="88" y1="200" x2="424" y2="200" stroke="white" stroke-width="4" opacity="0.5"/>
+  <line x1="88" y1="312" x2="424" y2="312" stroke="white" stroke-width="4" opacity="0.5"/>
+
+  <!-- Numbers in cells: top-left 3x3 box has a subtle A shape -->
+  <!-- Place a bold "A" letter in the center cell of the grid -->
+  <text
+    x="256"
+    y="290"
+    font-family="-apple-system, BlinkMacSystemFont, 'SF Pro', Arial, sans-serif"
+    font-size="140"
+    font-weight="700"
+    text-anchor="middle"
+    dominant-baseline="middle"
+    fill="white"
+  >A</text>
+
+  <!-- Small dots in other cells to suggest filled numbers -->
+  <circle cx="144" cy="144" r="10" fill="white" opacity="0.4"/>
+  <circle cx="256" cy="144" r="10" fill="white" opacity="0.4"/>
+  <circle cx="368" cy="144" r="10" fill="white" opacity="0.4"/>
+  <circle cx="144" cy="256" r="10" fill="white" opacity="0.4"/>
+  <circle cx="368" cy="256" r="10" fill="white" opacity="0.4"/>
+  <circle cx="144" cy="368" r="10" fill="white" opacity="0.4"/>
+  <circle cx="256" cy="368" r="10" fill="white" opacity="0.4"/>
+  <circle cx="368" cy="368" r="10" fill="white" opacity="0.4"/>
+</svg>

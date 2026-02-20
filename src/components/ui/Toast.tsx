@@ -3,14 +3,15 @@ import { AnimatePresence, motion } from 'framer-motion'
 interface Props {
   message: string | null
   isNew?: boolean
+  id?: string | number
 }
 
-export function Toast({ message, isNew }: Props) {
+export function Toast({ message, isNew, id }: Props) {
   return (
     <AnimatePresence>
       {message && (
         <motion.div
-          key={message}
+          key={id ?? message}
           className="pointer-events-none fixed top-20 inset-x-0 flex justify-center z-50"
           initial={{ opacity: 0, y: -16 }}
           animate={{ opacity: 1, y: 0 }}

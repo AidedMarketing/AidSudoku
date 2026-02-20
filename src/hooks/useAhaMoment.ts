@@ -5,17 +5,21 @@ import { detectTechnique } from '../lib/sudoku/techniqueDetector'
 import type { TechniqueName } from '../types'
 import { TECHNIQUE_LABELS } from '../types'
 
-// Only fire A-ha! toasts for techniques the player has at least observed
+// Phase 2: all 4 free-tier techniques fire A-ha! moments
 const AHA_ELIGIBLE: TechniqueName[] = [
   'naked_singles',
   'hidden_singles',
+  'naked_pairs',
+  'hidden_pairs',
 ]
+
+export type AhaMomentType = 'aha' | 'mastered' | 'discovered'
 
 export interface AhaMoment {
   id: number
   technique: TechniqueName
   label: string
-  isNew: boolean  // true if first time detecting this technique
+  type: AhaMomentType
 }
 
 /**
@@ -52,23 +56,39 @@ export function useAhaMoment() {
 
     if (changedIdx !== -1) {
       const result = detectTechnique(prev, board, changedIdx)
-      if (result && AHA_ELIGIBLE.includes(result.technique)) {
+      if (result) {
         const technique = result.technique
+        const entry = passport[technique]
+
         addTechnique(technique)
         recordUse(technique)
 
-        const isNew = passport[technique].status === 'locked'
-        if (isNew) unlockTechnique(technique)
+        if (AHA_ELIGIBLE.includes(technique)) {
+          let type: AhaMomentType
 
-        setAhaMoment({
-          id: ++idRef.current,
-          technique,
-          label: TECHNIQUE_LABELS[technique],
-          isNew,
-        })
+          if (entry.status === 'locked') {
+            // Stumbled upon a technique not yet learned → "discovered" toast
+            unlockTechnique(technique)
+            type = 'discovered'
+          } else if (
+            entry.status === 'learned' &&
+            entry.useCount + 1 >= 5  // passportStore MASTERY_THRESHOLD = 5
+          ) {
+            type = 'mastered'
+          } else {
+            type = 'aha'
+          }
 
-        // Auto-dismiss after 3 s
-        setTimeout(() => setAhaMoment(null), 3000)
+          setAhaMoment({
+            id: ++idRef.current,
+            technique,
+            label: TECHNIQUE_LABELS[technique],
+            type,
+          })
+
+          // Auto-dismiss
+          setTimeout(() => setAhaMoment(null), type === 'mastered' ? 4000 : 3000)
+        }
       }
     }
 

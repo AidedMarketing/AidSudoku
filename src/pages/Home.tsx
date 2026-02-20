@@ -15,14 +15,31 @@ const DIFFICULTIES: { value: Difficulty; label: string; desc: string }[] = [
 ]
 
 export function Home() {
-  const navigate = useNavigate()
-  const startGame = useGameStore(s => s.startGame)
-  const gameStatus = useGameStore(s => s.gameStatus)
-  const [showDiffSheet, setShowDiffSheet] = useState(false)
+  const navigate    = useNavigate()
+  const startGame   = useGameStore(s => s.startGame)
+  const gameStatus  = useGameStore(s => s.gameStatus)
 
-  function handleStart(difficulty: Difficulty) {
-    const puzzle = generatePuzzle(difficulty)
-    startGame(puzzle)
+  const [showDiffSheet,    setShowDiffSheet]    = useState(false)
+  const [showConfirmSheet, setShowConfirmSheet] = useState(false)
+  const [pendingDifficulty, setPendingDifficulty] = useState<Difficulty | null>(null)
+
+  function tryStart(difficulty: Difficulty) {
+    if (gameStatus === 'playing' || gameStatus === 'paused') {
+      // Game in progress — ask for confirmation first
+      setPendingDifficulty(difficulty)
+      setShowDiffSheet(false)
+      setShowConfirmSheet(true)
+    } else {
+      setShowDiffSheet(false)
+      startGame(generatePuzzle(difficulty))
+      navigate('/game')
+    }
+  }
+
+  function confirmAbandon() {
+    if (!pendingDifficulty) return
+    setShowConfirmSheet(false)
+    startGame(generatePuzzle(pendingDifficulty))
     navigate('/game')
   }
 
@@ -43,7 +60,7 @@ export function Home() {
       </motion.div>
 
       {/* Resume card */}
-      {gameStatus === 'paused' && (
+      {(gameStatus === 'playing' || gameStatus === 'paused') && (
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -83,15 +100,36 @@ export function Home() {
             <button
               key={d.value}
               className="flex flex-col text-left px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 active:bg-gray-50 dark:active:bg-gray-800"
-              onClick={() => {
-                setShowDiffSheet(false)
-                handleStart(d.value)
-              }}
+              onClick={() => tryStart(d.value)}
             >
               <span className="font-semibold text-gray-900 dark:text-white">{d.label}</span>
               <span className="text-xs text-gray-400 mt-0.5">{d.desc}</span>
             </button>
           ))}
+        </div>
+      </BottomSheet>
+
+      {/* Abandon confirmation */}
+      <BottomSheet
+        open={showConfirmSheet}
+        onClose={() => setShowConfirmSheet(false)}
+        title="Abandon current game?"
+      >
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">
+          Your current puzzle will be lost. This can't be undone.
+        </p>
+        <div className="flex flex-col gap-3">
+          <Button size="lg" className="w-full" onClick={confirmAbandon}>
+            Start new game
+          </Button>
+          <Button
+            variant="secondary"
+            size="lg"
+            className="w-full"
+            onClick={() => { setShowConfirmSheet(false); navigate('/game') }}
+          >
+            Keep playing
+          </Button>
         </div>
       </BottomSheet>
     </div>
