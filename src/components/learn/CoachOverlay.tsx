@@ -51,7 +51,7 @@ export function CoachOverlay({ step, onApply }: Props) {
           </>
         ) : (
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            No more logical steps found — try the Hint button or think deeper.
+            No more logical steps found. Use Hint to place a number and continue.
           </p>
         )}
       </motion.div>
