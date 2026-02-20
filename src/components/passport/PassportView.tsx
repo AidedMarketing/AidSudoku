@@ -46,7 +46,7 @@ export function PassportView() {
         ))}
       </div>
 
-      <p className="text-xs text-center text-gray-400 dark:text-gray-600">
+      <p className="text-xs text-center text-gray-400 dark:text-gray-400">
         Tap a free lesson to open it. Advanced techniques coming soon.
       </p>
     </div>

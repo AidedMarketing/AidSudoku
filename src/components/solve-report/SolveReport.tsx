@@ -81,7 +81,7 @@ export function SolveReport({ report, onClose }: Props) {
           {/* Learn CTA — shown when a technique used in this solve has a lesson */}
           {learnCTATechnique && (
             <motion.div
-              className="bg-[#6AAD64]/10 border border-[#6AAD64]/30 rounded-2xl px-4 py-3"
+              className="bg-accent/10 border border-accent/30 rounded-2xl px-4 py-3"
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
@@ -90,7 +90,7 @@ export function SolveReport({ report, onClose }: Props) {
                 Want to understand <strong>{TECHNIQUE_LABELS[learnCTATechnique]}</strong>? See the full lesson.
               </p>
               <button
-                className="text-sm font-semibold text-[#6AAD64] active:opacity-60"
+                className="text-sm font-semibold text-accent active:opacity-60"
                 onClick={() => handleLearnTechnique(learnCTATechnique)}
               >
                 Learn {TECHNIQUE_LABELS[learnCTATechnique]} →

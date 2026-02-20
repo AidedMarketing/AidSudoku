@@ -50,7 +50,7 @@ export function Learn() {
             >
               {/* Status badge */}
               <div className={`w-10 h-10 rounded-full shrink-0 flex items-center justify-center text-lg ${
-                status === 'mastered' ? 'bg-[#6AAD64]/15' :
+                status === 'mastered' ? 'bg-accent/15' :
                 status === 'learned'  ? 'bg-blue-100 dark:bg-blue-950' :
                                         'bg-gray-200 dark:bg-gray-700'
               }`}>
@@ -68,7 +68,7 @@ export function Learn() {
 
               <div className="flex flex-col items-end shrink-0 gap-1">
                 <span className={`text-xs font-semibold capitalize px-2 py-0.5 rounded-full ${
-                  status === 'mastered' ? 'bg-[#6AAD64]/15 text-[#6AAD64]' :
+                  status === 'mastered' ? 'bg-accent/15 text-accent' :
                   status === 'learned'  ? 'bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-300' :
                                           'text-gray-400'
                 }`}>
@@ -85,7 +85,7 @@ export function Learn() {
       <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-3">
         Advanced techniques
       </h2>
-      <div className="flex flex-col gap-2 opacity-50">
+      <div className="flex flex-col gap-2 opacity-60">
         {COMING_SOON.filter(t => LESSONS[t] === null).map(t => (
           <div
             key={t}

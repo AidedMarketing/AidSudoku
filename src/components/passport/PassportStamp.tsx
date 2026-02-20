@@ -27,7 +27,7 @@ export function PassportStamp({ technique, status, useCount: _useCount, onPress 
   const inner = (
     <>
       <span className="text-xl leading-none">{statusIcon[status]}</span>
-      <span className="text-[10px] font-semibold leading-tight">
+      <span className="text-[11px] font-semibold leading-tight">
         {TECHNIQUE_LABELS[technique]}
       </span>
     </>

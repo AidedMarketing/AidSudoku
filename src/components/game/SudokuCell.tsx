@@ -22,16 +22,16 @@ export function SudokuCell({
 
   // ── Background ────────────────────────────────────────────────────────────
   let bg = 'bg-white dark:bg-[#1E1E1E]'
-  if (isSelected)    bg = 'bg-[#6AAD6440] dark:bg-[#6AAD6430]'
-  else if (isConflict) bg = 'bg-[#E5737320] dark:bg-[#E5737318]'
+  if (isSelected)    bg = 'bg-accent/25 dark:bg-accent/[0.19]'
+  else if (isConflict) bg = 'bg-error/[0.12] dark:bg-error/[0.09]'
   else if (isSameNumber) bg = 'bg-gray-100 dark:bg-gray-800'
   else if (isRelated)    bg = 'bg-gray-50 dark:bg-[#242424]'
 
   // ── Text colour ───────────────────────────────────────────────────────────
   let textColour = 'text-gray-900 dark:text-white'
   if (isGiven)     textColour = 'text-black dark:text-white font-semibold'
-  else if (isHint) textColour = 'text-[#5B9BD5]'
-  else if (isConflict) textColour = 'text-[#E57373]'
+  else if (isHint) textColour = 'text-hint'
+  else if (isConflict) textColour = 'text-error'
 
   // ── Border classes (box borders thicker) ─────────────────────────────────
   const r = rowOf(idx), c = colOf(idx), b = boxOf(idx)

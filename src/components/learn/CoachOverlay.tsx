@@ -19,7 +19,7 @@ export function CoachOverlay({ step, onApply }: Props) {
     <AnimatePresence>
       <motion.div
         key="coach-overlay"
-        className="w-full max-w-[min(92vw,400px)] mx-auto bg-[#6AAD64]/10 dark:bg-[#6AAD64]/15 border border-[#6AAD64]/40 rounded-2xl px-4 py-3 flex flex-col gap-2"
+        className="w-full max-w-[min(92vw,400px)] mx-auto bg-accent/10 dark:bg-accent/15 border border-accent/40 rounded-2xl px-4 py-3 flex flex-col gap-2"
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -8 }}
@@ -28,12 +28,12 @@ export function CoachOverlay({ step, onApply }: Props) {
         {step ? (
           <>
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-[#6AAD64] uppercase tracking-wide">
+              <span className="text-xs font-semibold text-accent uppercase tracking-wide">
                 Coach · {label}
               </span>
               {!isPairStep && (
                 <button
-                  className="text-xs text-[#6AAD64] font-semibold active:opacity-60"
+                  className="text-xs text-accent font-semibold active:opacity-60"
                   onClick={onApply}
                 >
                   Apply →

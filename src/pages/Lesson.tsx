@@ -10,7 +10,7 @@ export function Lesson() {
 
   if (!technique || !ALL_TECHNIQUES.includes(technique as TechniqueName)) {
     return (
-      <div className="px-5 pt-10 text-gray-400 text-sm">
+      <div className="px-5 pt-10 text-gray-400 dark:text-gray-500 text-sm">
         Technique not found.
       </div>
     )
