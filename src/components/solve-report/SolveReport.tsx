@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { SolveScore } from './SolveScore'
 import { TechniqueBreakdown } from './TechniqueBreakdown'
@@ -20,8 +21,8 @@ export function SolveReport({ report, onClose }: Props) {
   const passport        = usePassportStore(s => s.passport)
   const resetGame       = useGameStore(s => s.resetGame)
 
-  // Ensure Naked Singles is unlocked on first solve
-  unlockTechnique('naked_singles')
+  // Ensure Naked Singles is unlocked on first solve (run once on mount)
+  useEffect(() => { unlockTechnique('naked_singles') }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Find the first technique used in this solve that has a lesson and isn't mastered yet
   const learnCTATechnique: TechniqueName | null =

@@ -1,9 +1,12 @@
+import { useNavigate } from 'react-router-dom'
 import { usePassportStore } from '../../store/passportStore'
 import { PassportStamp } from './PassportStamp'
 import { ALL_TECHNIQUES } from '../../types'
+import { FREE_TECHNIQUES } from '../../data/lessonContent'
 
 export function PassportView() {
-  const passport = usePassportStore(s => s.passport)
+  const passport  = usePassportStore(s => s.passport)
+  const navigate  = useNavigate()
 
   const learned  = ALL_TECHNIQUES.filter(t => passport[t].status !== 'locked').length
   const mastered = ALL_TECHNIQUES.filter(t => passport[t].status === 'mastered').length
@@ -26,7 +29,7 @@ export function PassportView() {
         />
       </div>
 
-      {/* Stamp grid */}
+      {/* Stamp grid — tappable for free techniques */}
       <div className="grid grid-cols-3 gap-3">
         {ALL_TECHNIQUES.map(technique => (
           <PassportStamp
@@ -34,13 +37,17 @@ export function PassportView() {
             technique={technique}
             status={passport[technique].status}
             useCount={passport[technique].useCount}
+            onPress={
+              FREE_TECHNIQUES.includes(technique)
+                ? () => navigate(`/learn/${technique}`)
+                : undefined
+            }
           />
         ))}
       </div>
 
       <p className="text-xs text-center text-gray-400 dark:text-gray-600">
-        Play puzzles and apply techniques to earn stamps.
-        Complete lessons to unlock new ones.
+        Tap a stamp to see its lesson. Play puzzles to earn more.
       </p>
     </div>
   )

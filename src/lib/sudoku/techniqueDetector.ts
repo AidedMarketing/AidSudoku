@@ -4,7 +4,7 @@
 
 import type { TechniqueName } from '../../types'
 import { getCandidates } from './solver'
-import { rowOf, colOf, boxOf } from './generator'
+import { rowOf, colOf } from './generator'
 
 type Grid = number[]
 
@@ -187,5 +187,3 @@ function hadHiddenTriple(grid: Grid, idx: number, value: number): boolean {
   return false
 }
 
-// ─── Unused import suppressor (boxOf used in the module) ─────────────────────
-void boxOf

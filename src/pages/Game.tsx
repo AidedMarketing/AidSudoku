@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { SudokuBoard } from '../components/game/SudokuBoard'
@@ -48,8 +48,8 @@ export function Game() {
     if (gameStatus === 'idle') navigate('/', { replace: true })
   }, [gameStatus, navigate])
 
-  // Record the solve when the game is won
-  const hasRecordedRef = { current: false }
+  // Record the solve when the game is won (ref persists across re-renders)
+  const hasRecordedRef = useRef(false)
   useEffect(() => {
     if (gameStatus === 'won' && report && !hasRecordedRef.current) {
       hasRecordedRef.current = true
@@ -112,6 +112,7 @@ export function Game() {
 
       {/* A-ha! Toast */}
       <Toast
+        id={ahaMoment?.id}
         message={
           !ahaMoment ? null :
           ahaMoment.type === 'mastered'   ? `You've mastered ${ahaMoment.label}! ⭐` :

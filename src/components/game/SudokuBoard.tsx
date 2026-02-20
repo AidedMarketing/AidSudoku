@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { SudokuCell } from './SudokuCell'
 import { useGame } from '../../hooks/useGame'
 import { useSettingsStore } from '../../store/settingsStore'
@@ -17,14 +18,19 @@ export function SudokuBoard({ coachHighlight, coachTarget }: Props = {}) {
 
   const showErrors = useSettingsStore(s => s.showErrors)
 
+  // Memoised so the O(81×20) scan only runs when board or error-setting changes
+  const conflicts = useMemo(() => {
+    if (!board || !showErrors) return new Set<number>()
+    return new Set(
+      [...Array(81).keys()].flatMap(i =>
+        board[i] !== '0' ? [...getConflicts(board, i)] : []
+      )
+    )
+  }, [board, showErrors])
+
   if (!puzzle || !board) return null
 
   const selectedValue = selectedCell !== null ? board[selectedCell] : null
-  const conflicts = showErrors
-    ? new Set([...Array(81).keys()].flatMap(i =>
-        board[i] !== '0' ? [...getConflicts(board, i)] : []
-      ))
-    : new Set<number>()
 
   return (
     <div

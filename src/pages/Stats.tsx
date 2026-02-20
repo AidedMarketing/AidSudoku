@@ -7,6 +7,16 @@ const DIFFICULTIES: Difficulty[] = ['easy', 'medium', 'hard', 'expert']
 export function Stats() {
   const store = useStatsStore()
 
+  if (store.history.length === 0) {
+    return (
+      <div className="px-5 pt-10 pb-28 min-h-screen bg-white dark:bg-[#121212] flex flex-col items-center justify-center gap-3">
+        <p className="text-5xl">🧩</p>
+        <p className="text-lg font-semibold text-gray-900 dark:text-white">No puzzles yet</p>
+        <p className="text-sm text-gray-400 text-center">Complete your first puzzle to start tracking your stats.</p>
+      </div>
+    )
+  }
+
   return (
     <div className="px-5 pt-10 pb-28 min-h-screen bg-white dark:bg-[#121212]">
       <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Stats</h1>
