@@ -23,7 +23,7 @@ export function TechniqueDetail({ technique }: Props) {
     return (
       <div className="px-5 pt-10 pb-28 min-h-screen bg-white dark:bg-[#121212]">
         <button
-          className="text-sm text-gray-400 mb-6 active:opacity-60"
+          className="text-sm text-gray-400 mb-6 active:opacity-60 -mx-2 px-2 py-2"
           onClick={() => navigate('/learn')}
         >
           ← Learn
@@ -47,7 +47,7 @@ export function TechniqueDetail({ technique }: Props) {
       {/* Header */}
       <div className="px-5 pt-10 pb-4">
         <button
-          className="text-sm text-gray-400 mb-5 active:opacity-60 block"
+          className="text-sm text-gray-400 mb-5 active:opacity-60 block -mx-2 px-2 py-2"
           onClick={() => navigate('/learn')}
         >
           ← Learn
@@ -60,7 +60,7 @@ export function TechniqueDetail({ technique }: Props) {
           {status !== 'locked' && (
             <span className={`text-xs font-semibold px-2.5 py-1 rounded-full shrink-0 mt-1 capitalize ${
               status === 'mastered'
-                ? 'bg-[#6AAD64]/15 text-[#6AAD64]'
+                ? 'bg-accent/15 text-accent'
                 : 'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300'
             }`}>
               {status}
@@ -91,7 +91,7 @@ export function TechniqueDetail({ technique }: Props) {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: i * 0.07 }}
             >
-              <span className="text-[#6AAD64] font-bold text-sm mt-px shrink-0">{i + 1}.</span>
+              <span className="text-accent font-bold text-sm mt-px shrink-0">{i + 1}.</span>
               <p className="text-sm text-gray-700 dark:text-gray-300 leading-snug">{point}</p>
             </motion.div>
           ))}
@@ -116,7 +116,7 @@ export function TechniqueDetail({ technique }: Props) {
                   key={i}
                   className={`w-8 h-8 flex items-center justify-center rounded text-sm font-semibold border ${
                     isAnswer
-                      ? 'bg-[#6AAD64]/20 border-[#6AAD64] text-[#6AAD64]'
+                      ? 'bg-accent/20 border-accent text-accent'
                       : val !== 0
                       ? 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white'
                       : 'bg-gray-100 dark:bg-gray-900 border-gray-200 dark:border-gray-700 text-transparent'
@@ -138,7 +138,7 @@ export function TechniqueDetail({ technique }: Props) {
           </h2>
           {status === 'locked' && (
             <button
-              className="text-xs text-[#6AAD64] font-semibold active:opacity-60"
+              className="text-xs text-accent font-semibold active:opacity-60"
               onClick={handleLessonComplete}
             >
               Mark as learned ✓

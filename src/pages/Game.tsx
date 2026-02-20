@@ -68,7 +68,7 @@ export function Game() {
       {/* Top bar */}
       <div className="w-full flex items-center justify-between px-4 pt-4 pb-2">
         <button
-          className="text-gray-400 dark:text-gray-500 text-sm font-medium active:opacity-60"
+          className="text-gray-400 dark:text-gray-500 text-sm font-medium active:opacity-60 px-2 py-2"
           onClick={() => {
             if (gameStatus !== 'won') resetGame()
             navigate('/')

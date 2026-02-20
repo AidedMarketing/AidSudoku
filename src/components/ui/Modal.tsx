@@ -17,10 +17,11 @@ export function Modal({ open, onClose, children }: Props) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={onClose}
+            onClick={() => onClose?.()}
           />
           <motion.div
-            className="fixed inset-x-4 bottom-0 top-auto z-50 bg-white dark:bg-gray-900 rounded-t-3xl p-6 pb-10 shadow-2xl"
+            className="fixed inset-x-4 bottom-0 top-auto z-50 bg-white dark:bg-gray-900 rounded-t-3xl p-6 shadow-2xl"
+            style={{ paddingBottom: 'env(safe-area-inset-bottom, 24px)' }}
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}

@@ -137,15 +137,15 @@ export function PracticeBoard({ technique, difficulty, onMastered }: Props) {
           const isHighlighted = highlightCells.has(i)
 
           let bg = 'bg-white dark:bg-[#1E1E1E]'
-          if (isCoachTarget)   bg = 'bg-[#6AAD6460]'
-          else if (isSel)      bg = 'bg-[#6AAD6440] dark:bg-[#6AAD6430]'
+          if (isCoachTarget)   bg = 'bg-accent/40'
+          else if (isSel)      bg = 'bg-accent/25 dark:bg-accent/[0.19]'
           else if (isHighlighted) bg = 'bg-blue-50 dark:bg-blue-950/30'
           else if (isSameNum)  bg = 'bg-gray-100 dark:bg-gray-800'
           else if (isRelated)  bg = 'bg-gray-50 dark:bg-[#242424]'
 
           let textColor = 'text-gray-900 dark:text-white'
           if (isGiven)         textColor = 'text-black dark:text-white font-semibold'
-          else if (isCoachTarget) textColor = 'text-[#6AAD64] font-bold'
+          else if (isCoachTarget) textColor = 'text-accent font-bold'
 
           const borderTop  = r % 3 === 0 && r !== 0 ? 'border-t-2 border-t-gray-800 dark:border-t-gray-300' : 'border-t border-t-gray-200 dark:border-t-gray-700'
           const borderLeft = c % 3 === 0 && c !== 0 ? 'border-l-2 border-l-gray-800 dark:border-l-gray-300' : 'border-l border-l-gray-200 dark:border-l-gray-700'
@@ -171,12 +171,12 @@ export function PracticeBoard({ technique, difficulty, onMastered }: Props) {
         {hintStep && (
           <motion.div
             key="hint"
-            className="w-full bg-[#6AAD64]/10 border border-[#6AAD64]/30 rounded-xl px-4 py-3"
+            className="w-full bg-accent/10 border border-accent/30 rounded-xl px-4 py-3"
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
           >
-            <p className="text-xs font-semibold text-[#6AAD64] mb-1">
+            <p className="text-xs font-semibold text-accent mb-1">
               {TECHNIQUE_LABELS[hintStep.technique]}
             </p>
             <p className="text-sm text-gray-700 dark:text-gray-300 leading-snug">
@@ -210,7 +210,7 @@ export function PracticeBoard({ technique, difficulty, onMastered }: Props) {
       {/* Actions row */}
       <div className="flex gap-3 w-full">
         <button
-          className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-[#6AAD64]/15 text-[#6AAD64] active:bg-[#6AAD64]/25 transition-colors"
+          className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-accent/15 text-accent active:bg-accent/25 transition-colors"
           onClick={handleCoach}
         >
           Coach hint

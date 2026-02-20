@@ -25,7 +25,7 @@ export function Tabs() {
           to={tab.to}
           end={tab.to === '/'}
           className={({ isActive }) =>
-            `flex-1 flex items-center justify-center py-3 text-[11px] font-semibold tracking-wide transition-colors ${
+            `flex-1 flex items-center justify-center py-3 min-h-[44px] text-[11px] font-semibold tracking-wide transition-colors ${
               isActive
                 ? 'text-accent'
                 : 'text-gray-400 dark:text-gray-500'
