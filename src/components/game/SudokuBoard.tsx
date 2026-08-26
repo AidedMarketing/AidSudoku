@@ -34,7 +34,7 @@ export function SudokuBoard({ coachHighlight, coachTarget }: Props = {}) {
 
   return (
     <div
-      className="grid border-2 border-gray-900 dark:border-white w-full max-w-[min(92vw,400px)] mx-auto aspect-square"
+      className="grid border-2 border-gray-900 dark:border-white w-full max-w-[min(92vw,400px)] mx-auto aspect-square touch-none"
       style={{ gridTemplateColumns: 'repeat(9, 1fr)', gridTemplateRows: 'repeat(9, 1fr)' }}
     >
       {Array.from({ length: 81 }, (_, i) => {

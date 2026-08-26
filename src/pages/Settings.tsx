@@ -69,6 +69,18 @@ export function Settings() {
         </div>
       </section>
 
+      <section className="mb-6">
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Daily Puzzle</p>
+        <div className="bg-gray-50 dark:bg-gray-900 rounded-2xl px-4">
+          <ToggleRow
+            label="Home Screen Badge"
+            description="Show a reminder badge on the app icon when today's puzzle is unplayed"
+            value={settings.dailyBadgeEnabled}
+            onChange={settings.setDailyBadgeEnabled}
+          />
+        </div>
+      </section>
+
       <section>
         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Feedback</p>
         <div className="bg-gray-50 dark:bg-gray-900 rounded-2xl px-4">

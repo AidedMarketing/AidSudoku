@@ -7,6 +7,7 @@ interface SettingsState {
   showErrors: boolean
   autoRemoveNotes: boolean
   soundEnabled: boolean
+  dailyBadgeEnabled: boolean
   isPremium: boolean  // future monetisation gate
 
   setDarkMode: (v: boolean) => void
@@ -14,6 +15,7 @@ interface SettingsState {
   setShowErrors: (v: boolean) => void
   setAutoRemoveNotes: (v: boolean) => void
   setSoundEnabled: (v: boolean) => void
+  setDailyBadgeEnabled: (v: boolean) => void
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -24,6 +26,7 @@ export const useSettingsStore = create<SettingsState>()(
       showErrors: true,
       autoRemoveNotes: true,
       soundEnabled: false,
+      dailyBadgeEnabled: true,
       isPremium: false,
 
       setDarkMode: v => set({ isDarkMode: v }),
@@ -31,6 +34,7 @@ export const useSettingsStore = create<SettingsState>()(
       setShowErrors: v => set({ showErrors: v }),
       setAutoRemoveNotes: v => set({ autoRemoveNotes: v }),
       setSoundEnabled: v => set({ soundEnabled: v }),
+      setDailyBadgeEnabled: v => set({ dailyBadgeEnabled: v }),
     }),
     { name: 'aidsudoku-settings' },
   ),

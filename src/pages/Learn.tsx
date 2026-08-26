@@ -1,5 +1,5 @@
-// Phase 2 — technique lesson hub.
-// Lists the 4 free techniques with status badges; tapping navigates to the full lesson.
+// Technique lesson hub.
+// Lists every technique with a lesson, status badges; tapping navigates to the full lesson.
 
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
@@ -29,9 +29,9 @@ export function Learn() {
         Study the logic behind every solve.
       </p>
 
-      {/* Free techniques */}
+      {/* Techniques */}
       <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-3">
-        Free lessons
+        Lessons
       </h2>
       <div className="flex flex-col gap-2 mb-8">
         {FREE_TECHNIQUES.map((t, idx) => {
@@ -81,23 +81,27 @@ export function Learn() {
         })}
       </div>
 
-      {/* Advanced — coming soon */}
-      <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-3">
-        Advanced techniques
-      </h2>
-      <div className="flex flex-col gap-2 opacity-60">
-        {COMING_SOON.filter(t => LESSONS[t] === null).map(t => (
-          <div
-            key={t}
-            className="flex items-center justify-between px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800/40"
-          >
-            <span className="text-sm text-gray-500 dark:text-gray-400">
-              {TECHNIQUE_LABELS[t]}
-            </span>
-            <span className="text-xs text-gray-400">Coming soon</span>
+      {/* Advanced — coming soon (only shows if a technique ships without a lesson yet) */}
+      {COMING_SOON.length > 0 && (
+        <>
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-3">
+            Advanced techniques
+          </h2>
+          <div className="flex flex-col gap-2 opacity-60">
+            {COMING_SOON.map(t => (
+              <div
+                key={t}
+                className="flex items-center justify-between px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800/40"
+              >
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  {TECHNIQUE_LABELS[t]}
+                </span>
+                <span className="text-xs text-gray-400">Coming soon</span>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </>
+      )}
     </div>
   )
 }

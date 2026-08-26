@@ -13,7 +13,9 @@ import { useTimer } from '../hooks/useTimer'
 import { useAhaMoment } from '../hooks/useAhaMoment'
 import { useSolveReport } from '../hooks/useSolveReport'
 import { useStatsStore } from '../store/statsStore'
+import { useDailyStore } from '../store/dailyStore'
 import { useGame } from '../hooks/useGame'
+import { useKeyboard } from '../hooks/useKeyboard'
 import { getNextCoachStep } from '../lib/sudoku/techniques'
 
 export function Game() {
@@ -22,11 +24,15 @@ export function Game() {
   const resetGame      = useGameStore(s => s.resetGame)
   const coachMode      = useGameStore(s => s.coachMode)
   const board          = useGameStore(s => s.board)
+  const isDaily        = useGameStore(s => s.isDaily)
   const recordSolve    = useStatsStore(s => s.recordSolve)
   const { handleHint } = useGame()
 
   // Drive the stopwatch
   useTimer()
+
+  // Physical keyboard support (number keys, arrows, backspace)
+  useKeyboard()
 
   const { ahaMoment } = useAhaMoment()
   const report = useSolveReport()
@@ -63,10 +69,20 @@ export function Game() {
     }
   }, [gameStatus]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Mark today's daily puzzle complete when a daily game is won (independent of
+  // the recordSolve effect above — separate ref, separate store, no shared state)
+  const hasMarkedDailyRef = useRef(false)
+  useEffect(() => {
+    if (gameStatus === 'won' && isDaily && !hasMarkedDailyRef.current) {
+      hasMarkedDailyRef.current = true
+      useDailyStore.getState().markCompleted()
+    }
+  }, [gameStatus, isDaily])
+
   return (
-    <div className="flex flex-col items-center min-h-screen bg-white dark:bg-[#121212] pt-safe">
+    <div className="flex flex-col items-center h-dvh overflow-hidden bg-white dark:bg-[#121212] pt-safe">
       {/* Top bar */}
-      <div className="w-full flex items-center justify-between px-4 pt-4 pb-2">
+      <div className="w-full flex items-center justify-between px-4 pt-4 pb-2 shrink-0">
         <button
           className="text-gray-400 dark:text-gray-500 text-sm font-medium active:opacity-60 px-2 py-2"
           onClick={() => {
@@ -79,8 +95,8 @@ export function Game() {
         <GameTimer />
       </div>
 
-      {/* Board area */}
-      <div className="flex-1 flex flex-col justify-center items-center gap-4 w-full px-2 py-2 pb-safe">
+      {/* Board area — fills remaining space and never overflows */}
+      <div className="flex-1 flex flex-col justify-center items-center gap-2 w-full px-2 py-1 pb-safe overflow-hidden">
         <AnimatePresence>
           {gameStatus === 'paused' && (
             <motion.div

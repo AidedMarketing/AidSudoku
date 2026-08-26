@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Button } from '../components/ui/Button'
 import { BottomSheet } from '../components/ui/BottomSheet'
 import { useGameStore } from '../store/gameStore'
+import { useDailyStore } from '../store/dailyStore'
 import { generatePuzzle } from '../lib/sudoku/generator'
 import type { Difficulty } from '../types'
 
@@ -18,6 +19,11 @@ export function Home() {
   const navigate    = useNavigate()
   const startGame   = useGameStore(s => s.startGame)
   const gameStatus  = useGameStore(s => s.gameStatus)
+
+  const dailyCompleted    = useDailyStore(s => s.completed)
+  const dailyPuzzle       = useDailyStore(s => s.puzzle)
+  const ensureTodayPuzzle = useDailyStore(s => s.ensureTodayPuzzle)
+  useEffect(() => { ensureTodayPuzzle() }, [ensureTodayPuzzle])
 
   const [showDiffSheet,    setShowDiffSheet]    = useState(false)
   const [showConfirmSheet, setShowConfirmSheet] = useState(false)
@@ -82,10 +88,17 @@ export function Home() {
         <Button
           variant="secondary"
           size="lg"
-          className="w-full"
+          className="w-full flex items-center justify-center gap-2"
           onClick={() => navigate('/daily')}
         >
-          Today's Puzzle
+          {dailyCompleted ? (
+            "Today's Puzzle ✓"
+          ) : (
+            <>
+              <span className="w-1.5 h-1.5 rounded-full bg-accent shrink-0" />
+              {`Today's Puzzle${dailyPuzzle ? ` · ${dailyPuzzle.difficulty[0].toUpperCase()}${dailyPuzzle.difficulty.slice(1)}` : ''}`}
+            </>
+          )}
         </Button>
       </div>
 

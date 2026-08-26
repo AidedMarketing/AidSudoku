@@ -13,6 +13,13 @@
     -webkit-font-smoothing: antialiased;
     overscroll-behavior: none;
     user-select: none;
+    /* Prevent double-tap zoom and remove 300ms tap delay on the whole page */
+    touch-action: manipulation;
+  }
+
+  /* Eliminate 300ms tap delay on interactive elements */
+  button, a, [role="button"] {
+    touch-action: manipulation;
   }
 
   /* Safe area padding utilities */
@@ -22,9 +29,9 @@
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
-  /* Accounts for the tab bar (56px) + safe area inset */
+  /* Accounts for the tab bar (60px with icons) + safe area inset */
   .pb-tab-safe {
-    padding-bottom: calc(3.5rem + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(3.75rem + env(safe-area-inset-bottom, 0px));
   }
 }
 

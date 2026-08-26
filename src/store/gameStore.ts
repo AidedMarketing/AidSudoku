@@ -32,8 +32,11 @@ interface GameState {
   // Coach mode
   coachMode: boolean
 
+  // Daily puzzle
+  isDaily: boolean
+
   // Actions
-  startGame: (puzzle: PuzzleData) => void
+  startGame: (puzzle: PuzzleData, isDaily?: boolean) => void
   selectCell: (idx: number | null) => void
   enterNumber: (num: number) => void
   enterNote: (num: number) => void
@@ -69,8 +72,9 @@ export const useGameStore = create<GameState>()(
       errorsMode: true,
       techniquesDetected: [],
       coachMode: false,
+      isDaily: false,
 
-      startGame(puzzle) {
+      startGame(puzzle, isDaily = false) {
         set({
           puzzle,
           board: puzzle.clues,
@@ -86,6 +90,7 @@ export const useGameStore = create<GameState>()(
           hintsUsed: 0,
           techniquesDetected: [],
           coachMode: false,
+          isDaily,
         })
       },
 
@@ -235,6 +240,7 @@ export const useGameStore = create<GameState>()(
           hintsUsed: 0,
           techniquesDetected: [],
           coachMode: false,
+          isDaily: false,
         })
       },
     }),
@@ -251,6 +257,7 @@ export const useGameStore = create<GameState>()(
         difficulty: state.difficulty,
         hintsUsed: state.hintsUsed,
         techniquesDetected: state.techniquesDetected,
+        isDaily: state.isDaily,
       }),
     },
   ),

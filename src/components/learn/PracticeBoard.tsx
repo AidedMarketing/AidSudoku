@@ -7,17 +7,18 @@ import { generatePuzzle } from '../../lib/sudoku/generator'
 import { getNextCoachStep } from '../../lib/sudoku/techniques'
 import { detectTechnique } from '../../lib/sudoku/techniqueDetector'
 import { isCellValid } from '../../lib/sudoku/validator'
-import type { TechniqueName, Difficulty } from '../../types'
+import type { TechniqueName, Difficulty, PuzzleData } from '../../types'
 import { TECHNIQUE_LABELS } from '../../types'
 import { rowOf, colOf, boxOf } from '../../lib/sudoku/generator'
 
 interface Props {
   technique: TechniqueName
   difficulty: Difficulty
+  practicePuzzle?: PuzzleData
   onMastered?: () => void
 }
 
-export function PracticeBoard({ technique, difficulty, onMastered }: Props) {
+export function PracticeBoard({ technique, difficulty, practicePuzzle, onMastered }: Props) {
   const [clues,    setClues]    = useState('')
   const [board,    setBoard]    = useState('')
   const [solution, setSolution] = useState('')
@@ -34,7 +35,7 @@ export function PracticeBoard({ technique, difficulty, onMastered }: Props) {
   }
 
   function newPuzzle() {
-    const p = generatePuzzle(difficulty)
+    const p = practicePuzzle ?? generatePuzzle(difficulty)
     setClues(p.clues)
     setBoard(p.clues)
     setSolution(p.solution)
@@ -44,8 +45,8 @@ export function PracticeBoard({ technique, difficulty, onMastered }: Props) {
     prevBoardRef.current = p.clues
   }
 
-  // Generate a puzzle on mount and when difficulty changes
-  useEffect(() => { newPuzzle() }, [difficulty]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Generate a puzzle on mount and when difficulty/practicePuzzle changes
+  useEffect(() => { newPuzzle() }, [difficulty, practicePuzzle]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Detect technique application after each board change
   useEffect(() => {
