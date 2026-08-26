@@ -151,6 +151,7 @@ export function TechniqueDetail({ technique }: Props) {
         <PracticeBoard
           technique={technique}
           difficulty={lesson.difficulty}
+          practicePuzzle={lesson.practicePuzzle}
           onMastered={status === 'locked' ? handleLessonComplete : undefined}
         />
       </div>

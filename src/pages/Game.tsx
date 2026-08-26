@@ -13,6 +13,7 @@ import { useTimer } from '../hooks/useTimer'
 import { useAhaMoment } from '../hooks/useAhaMoment'
 import { useSolveReport } from '../hooks/useSolveReport'
 import { useStatsStore } from '../store/statsStore'
+import { useDailyStore } from '../store/dailyStore'
 import { useGame } from '../hooks/useGame'
 import { useKeyboard } from '../hooks/useKeyboard'
 import { getNextCoachStep } from '../lib/sudoku/techniques'
@@ -23,6 +24,7 @@ export function Game() {
   const resetGame      = useGameStore(s => s.resetGame)
   const coachMode      = useGameStore(s => s.coachMode)
   const board          = useGameStore(s => s.board)
+  const isDaily        = useGameStore(s => s.isDaily)
   const recordSolve    = useStatsStore(s => s.recordSolve)
   const { handleHint } = useGame()
 
@@ -66,6 +68,16 @@ export function Game() {
       })
     }
   }, [gameStatus]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Mark today's daily puzzle complete when a daily game is won (independent of
+  // the recordSolve effect above — separate ref, separate store, no shared state)
+  const hasMarkedDailyRef = useRef(false)
+  useEffect(() => {
+    if (gameStatus === 'won' && isDaily && !hasMarkedDailyRef.current) {
+      hasMarkedDailyRef.current = true
+      useDailyStore.getState().markCompleted()
+    }
+  }, [gameStatus, isDaily])
 
   return (
     <div className="flex flex-col items-center h-dvh overflow-hidden bg-white dark:bg-[#121212] pt-safe">

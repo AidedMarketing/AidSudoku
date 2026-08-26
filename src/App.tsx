@@ -10,6 +10,8 @@ import { Learn } from './pages/Learn'
 import { Lesson } from './pages/Lesson'
 import { Settings } from './pages/Settings'
 import { useSettingsStore } from './store/settingsStore'
+import { useDailyStore } from './store/dailyStore'
+import { useDailyBadge } from './hooks/useDailyBadge'
 
 export default function App() {
   const isDarkMode = useSettingsStore(s => s.isDarkMode)
@@ -18,6 +20,13 @@ export default function App() {
   useEffect(() => {
     document.documentElement.classList.toggle('dark', isDarkMode)
   }, [isDarkMode])
+
+  // Generate/cache today's puzzle as early as possible, before the user opens Daily
+  useEffect(() => {
+    useDailyStore.getState().ensureTodayPuzzle()
+  }, [])
+
+  useDailyBadge()
 
   return (
     <div className="max-w-md mx-auto relative min-h-screen">
