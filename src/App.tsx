@@ -14,12 +14,16 @@ import { useDailyStore } from './store/dailyStore'
 import { useDailyBadge } from './hooks/useDailyBadge'
 
 export default function App() {
-  const isDarkMode = useSettingsStore(s => s.isDarkMode)
+  const isDarkMode         = useSettingsStore(s => s.isDarkMode)
+  const reduceTransparency = useSettingsStore(s => s.reduceTransparency)
 
-  // Sync dark mode class on <html>
+  // Theme and material classes on <html> — tokens and .glass read these
   useEffect(() => {
     document.documentElement.classList.toggle('dark', isDarkMode)
   }, [isDarkMode])
+  useEffect(() => {
+    document.documentElement.classList.toggle('no-glass', reduceTransparency)
+  }, [reduceTransparency])
 
   // Generate/cache today's puzzle as early as possible, before the user opens Daily
   useEffect(() => {

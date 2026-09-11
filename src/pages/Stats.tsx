@@ -1,74 +1,56 @@
+import { PageShell } from '../components/ui/PageShell'
+import { StatTile } from '../components/ui/StatTile'
+import { SectionLabel } from '../components/ui/SectionLabel'
+import { SparkIcon } from '../components/ui/icons'
 import { useStatsStore } from '../store/statsStore'
 import { formatTime } from '../hooks/useTimer'
-import type { Difficulty } from '../types'
-
-const DIFFICULTIES: Difficulty[] = ['easy', 'medium', 'hard', 'expert']
+import { DIFFICULTIES, DIFFICULTY_LABEL } from '../lib/difficulty'
 
 export function Stats() {
   const store = useStatsStore()
 
   if (store.history.length === 0) {
     return (
-      <div className="px-5 pt-10 pb-28 min-h-screen bg-white dark:bg-[#121212] flex flex-col items-center justify-center gap-3">
-        <p className="text-5xl">🧩</p>
-        <p className="text-lg font-semibold text-gray-900 dark:text-white">No puzzles yet</p>
-        <p className="text-sm text-gray-400 text-center">Complete your first puzzle to start tracking your stats.</p>
-      </div>
+      <PageShell center>
+        <span className="w-14 h-14 rounded-full bg-paper-2 border border-line grid place-items-center">
+          <SparkIcon className="w-6 h-6 text-ink-3" />
+        </span>
+        <p className="font-display text-xl font-bold text-ink mt-4">No puzzles yet</p>
+        <p className="text-sm text-ink-3 text-center mt-1 max-w-xs">Complete your first puzzle to start tracking your stats.</p>
+      </PageShell>
     )
   }
 
   return (
-    <div className="px-5 pt-10 pb-28 min-h-screen bg-white dark:bg-[#121212]">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Stats</h1>
+    <PageShell>
+      <h1 className="font-display text-[28px] font-bold leading-none text-ink mb-6">Stats</h1>
 
-      {/* Streak */}
-      <div className="flex gap-4 mb-6">
-        <div className="flex-1 bg-gray-50 dark:bg-gray-800 rounded-2xl p-4 text-center">
-          <p className="text-3xl font-bold text-gray-900 dark:text-white">{store.currentStreak}</p>
-          <p className="text-xs text-gray-400 mt-1">Current streak</p>
-        </div>
-        <div className="flex-1 bg-gray-50 dark:bg-gray-800 rounded-2xl p-4 text-center">
-          <p className="text-3xl font-bold text-gray-900 dark:text-white">{store.longestStreak}</p>
-          <p className="text-xs text-gray-400 mt-1">Best streak</p>
-        </div>
-        <div className="flex-1 bg-gray-50 dark:bg-gray-800 rounded-2xl p-4 text-center">
-          <p className="text-3xl font-bold text-gray-900 dark:text-white">{store.history.length}</p>
-          <p className="text-xs text-gray-400 mt-1">Total solves</p>
-        </div>
+      {/* Streak — numbers you earned, so the current streak is gold */}
+      <div className="grid grid-cols-3 gap-3 mb-6">
+        <StatTile value={store.currentStreak} label="Current streak" tone="aha" />
+        <StatTile value={store.longestStreak} label="Best streak" />
+        <StatTile value={store.history.length} label="Total solves" />
       </div>
 
       {/* Per-difficulty breakdown */}
+      <SectionLabel>By difficulty</SectionLabel>
       <div className="flex flex-col gap-3">
         {DIFFICULTIES.map(d => {
           const played = store.getGamesPlayed(d)
           const best   = store.getBestTime(d)
           const avg    = store.getAverageTime(d)
-
           return (
-            <div key={d} className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4">
-              <p className="font-semibold capitalize text-gray-900 dark:text-white mb-3">{d}</p>
-              <div className="flex justify-between text-sm">
-                <div className="text-center">
-                  <p className="font-bold text-gray-900 dark:text-white">{played}</p>
-                  <p className="text-xs text-gray-400">Played</p>
-                </div>
-                <div className="text-center">
-                  <p className="font-bold text-gray-900 dark:text-white">
-                    {best !== null ? formatTime(best) : '—'}
-                  </p>
-                  <p className="text-xs text-gray-400">Best</p>
-                </div>
-                <div className="text-center">
-                  <p className="font-bold text-gray-900 dark:text-white">
-                    {avg !== null ? formatTime(avg) : '—'}
-                  </p>
-                  <p className="text-xs text-gray-400">Average</p>
-                </div>
+            <div key={d} className={`bg-paper-2 border border-line rounded-2xl p-4 ${played === 0 ? 'opacity-60' : ''}`}>
+              <p className="font-semibold text-ink mb-3">{DIFFICULTY_LABEL[d]}</p>
+              <div className="grid grid-cols-3 text-center tabular">
+                <div><p className="font-semibold text-ink">{played}</p><p className="text-xs text-ink-3 mt-0.5">Played</p></div>
+                <div><p className="font-semibold text-ink">{best !== null ? formatTime(best) : '—'}</p><p className="text-xs text-ink-3 mt-0.5">Best</p></div>
+                <div><p className="font-semibold text-ink">{avg !== null ? formatTime(avg) : '—'}</p><p className="text-xs text-ink-3 mt-0.5">Average</p></div>
               </div>
             </div>
           )
         })}
       </div>
-    </div>
+    </PageShell>
   )
 }

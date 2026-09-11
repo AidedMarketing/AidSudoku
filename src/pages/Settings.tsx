@@ -1,96 +1,72 @@
+import type { ReactNode } from 'react'
+import { PageShell } from '../components/ui/PageShell'
+import { SectionLabel } from '../components/ui/SectionLabel'
+import { ToggleRow } from '../components/ui/Switch'
 import { useSettingsStore } from '../store/settingsStore'
 
-interface ToggleRowProps {
-  label: string
-  description?: string
-  value: boolean
-  onChange: (v: boolean) => void
-}
-
-function ToggleRow({ label, description, value, onChange }: ToggleRowProps) {
-  return (
-    <div className="flex items-center justify-between py-4 border-b border-gray-100 dark:border-gray-800 last:border-0">
-      <div>
-        <p className="text-sm font-medium text-gray-900 dark:text-white">{label}</p>
-        {description && <p className="text-xs text-gray-400 mt-0.5">{description}</p>}
-      </div>
-      <button
-        role="switch"
-        aria-checked={value}
-        className={`w-12 h-6 rounded-full transition-colors ${value ? 'bg-accent' : 'bg-gray-200 dark:bg-gray-700'}`}
-        onClick={() => onChange(!value)}
-      >
-        <span
-          className={`block w-5 h-5 bg-white rounded-full shadow transition-transform mx-0.5 ${value ? 'translate-x-6' : 'translate-x-0'}`}
-        />
-      </button>
-    </div>
-  )
+function Group({ children }: { children: ReactNode }) {
+  return <div className="bg-paper-2 border border-line rounded-2xl px-4">{children}</div>
 }
 
 export function Settings() {
-  const settings = useSettingsStore()
+  const s = useSettingsStore()
 
   return (
-    <div className="px-5 pt-10 pb-28 min-h-screen bg-white dark:bg-[#121212]">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Settings</h1>
+    <PageShell>
+      <h1 className="font-display text-[28px] font-bold leading-none text-ink mb-6">Settings</h1>
 
-      <section className="mb-6">
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Appearance</p>
-        <div className="bg-gray-50 dark:bg-gray-900 rounded-2xl px-4">
-          <ToggleRow
-            label="Dark Mode"
-            value={settings.isDarkMode}
-            onChange={settings.setDarkMode}
-          />
-        </div>
-      </section>
+      <div className="flex flex-col gap-6">
+        <section>
+          <SectionLabel>Appearance</SectionLabel>
+          <Group>
+            <ToggleRow label="Dark Mode" value={s.isDarkMode} onChange={s.setDarkMode} />
+            <ToggleRow
+              label="Reduce Transparency"
+              description="Turn the glass surfaces solid"
+              value={s.reduceTransparency}
+              onChange={s.setReduceTransparency}
+            />
+          </Group>
+        </section>
 
-      <section className="mb-6">
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Gameplay</p>
-        <div className="bg-gray-50 dark:bg-gray-900 rounded-2xl px-4">
-          <ToggleRow
-            label="Show Timer"
-            value={settings.showTimer}
-            onChange={settings.setShowTimer}
-          />
-          <ToggleRow
-            label="Highlight Errors"
-            description="Show conflicts in red"
-            value={settings.showErrors}
-            onChange={settings.setShowErrors}
-          />
-          <ToggleRow
-            label="Auto-remove Notes"
-            description="Clear candidates when a number is placed"
-            value={settings.autoRemoveNotes}
-            onChange={settings.setAutoRemoveNotes}
-          />
-        </div>
-      </section>
+        <section>
+          <SectionLabel>Gameplay</SectionLabel>
+          <Group>
+            <ToggleRow label="Show Timer" value={s.showTimer} onChange={s.setShowTimer} />
+            <ToggleRow
+              label="Highlight Errors"
+              description="Show conflicts in red"
+              value={s.showErrors}
+              onChange={s.setShowErrors}
+            />
+            <ToggleRow
+              label="Auto-remove Notes"
+              description="Clear candidates when a number is placed"
+              value={s.autoRemoveNotes}
+              onChange={s.setAutoRemoveNotes}
+            />
+          </Group>
+        </section>
 
-      <section className="mb-6">
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Daily Puzzle</p>
-        <div className="bg-gray-50 dark:bg-gray-900 rounded-2xl px-4">
-          <ToggleRow
-            label="Home Screen Badge"
-            description="Show a reminder badge on the app icon when today's puzzle is unplayed"
-            value={settings.dailyBadgeEnabled}
-            onChange={settings.setDailyBadgeEnabled}
-          />
-        </div>
-      </section>
+        <section>
+          <SectionLabel>Daily Puzzle</SectionLabel>
+          <Group>
+            <ToggleRow
+              label="Home Screen Badge"
+              description="Show a reminder badge on the app icon when today's puzzle is unplayed"
+              value={s.dailyBadgeEnabled}
+              onChange={s.setDailyBadgeEnabled}
+            />
+          </Group>
+        </section>
 
-      <section>
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Feedback</p>
-        <div className="bg-gray-50 dark:bg-gray-900 rounded-2xl px-4">
-          <ToggleRow
-            label="Sound Effects"
-            value={settings.soundEnabled}
-            onChange={settings.setSoundEnabled}
-          />
-        </div>
-      </section>
-    </div>
+        <section>
+          <SectionLabel>Feedback</SectionLabel>
+          <Group>
+            <ToggleRow label="Sound Effects" value={s.soundEnabled} onChange={s.setSoundEnabled} />
+          </Group>
+        </section>
+      </div>
+    </PageShell>
   )
 }

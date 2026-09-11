@@ -8,9 +8,12 @@ import { rowOf, colOf, boxOf } from '../../lib/sudoku/generator'
 interface Props {
   coachHighlight?: Set<number>
   coachTarget?: number | null
+  /** Cell whose placement just fired an A-ha, plus a key that changes per moment. */
+  ahaCell?: number | null
+  ahaKey?: number
 }
 
-export function SudokuBoard({ coachHighlight, coachTarget }: Props = {}) {
+export function SudokuBoard({ coachHighlight, coachTarget, ahaCell, ahaKey }: Props = {}) {
   const {
     board, initialClues, selectedCell, notes,
     handleCellPress, puzzle,
@@ -34,7 +37,7 @@ export function SudokuBoard({ coachHighlight, coachTarget }: Props = {}) {
 
   return (
     <div
-      className="grid border-2 border-gray-900 dark:border-white w-full max-w-[min(92vw,400px)] mx-auto aspect-square touch-none"
+      className="grid w-full max-w-[min(92vw,400px)] mx-auto aspect-square bg-board border-2 border-board-box rounded-[10px] overflow-hidden shadow-board touch-none"
       style={{ gridTemplateColumns: 'repeat(9, 1fr)', gridTemplateRows: 'repeat(9, 1fr)' }}
     >
       {Array.from({ length: 81 }, (_, i) => {
@@ -56,21 +59,20 @@ export function SudokuBoard({ coachHighlight, coachTarget }: Props = {}) {
           value === selectedValue &&
           !isSelected
 
-        const isConflict      = conflicts.has(i)
-        const isCoachTarget   = coachTarget === i
-        const isCoachRelated  = !isCoachTarget && (coachHighlight?.has(i) ?? false)
-
         return (
           <SudokuCell
             key={i}
             idx={i}
             value={value}
             isGiven={isGiven}
-            isSelected={isSelected || isCoachRelated}
+            isSelected={isSelected}
             isSameNumber={isSameNumber}
             isRelated={isRelated}
-            isConflict={isConflict}
-            isHint={isCoachTarget}
+            isConflict={conflicts.has(i)}
+            isCoachTarget={coachTarget === i}
+            isCoachRelated={coachTarget !== i && (coachHighlight?.has(i) ?? false)}
+            isAha={ahaCell === i}
+            ahaKey={ahaKey}
             notes={notes[i] ?? []}
             onPress={handleCellPress}
           />

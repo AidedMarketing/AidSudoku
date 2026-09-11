@@ -1,6 +1,8 @@
 import { motion } from 'framer-motion'
 import type { TechniqueName, PassportStatus } from '../../types'
 import { TECHNIQUE_LABELS } from '../../types'
+import { StarIcon, CheckIcon } from '../ui/icons'
+import { useMotionSafe } from '../../lib/motion'
 
 interface Props {
   technique: TechniqueName
@@ -9,37 +11,39 @@ interface Props {
   onPress?: () => void
 }
 
-const statusStyles: Record<PassportStatus, string> = {
-  locked:   'bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-400',
-  learned:  'bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300',
-  mastered: 'bg-accent/10 border-accent/30 text-accent-dim dark:text-accent',
+const ring: Record<PassportStatus, string> = {
+  locked:   'border-2 border-dashed border-line text-ink-3',
+  learned:  'border-2 border-guide bg-guide/10 text-guide-ink',
+  mastered: 'border-2 border-aha bg-aha/15 text-aha-ink shadow-[0_0_0_4px_rgb(var(--c-aha)/0.15)]',
 }
 
-const statusIcon: Record<PassportStatus, string> = {
-  locked:   '○',
-  learned:  '✓',
-  mastered: '★',
-}
+/** One passport stamp: a ring whose state is legible by glyph and weight, not color alone. */
+export function PassportStamp({ technique, status, useCount, onPress }: Props) {
+  const { tap } = useMotionSafe()
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function PassportStamp({ technique, status, useCount: _useCount, onPress }: Props) {
-  const baseClass = `flex flex-col items-center gap-1 p-3 rounded-2xl border-2 text-center ${statusStyles[status]}`
   const inner = (
     <>
-      <span className="text-xl leading-none">{statusIcon[status]}</span>
-      <span className="text-[11px] font-semibold leading-tight">
+      <span className={`w-[58px] h-[58px] rounded-full grid place-items-center ${ring[status]}`}>
+        {status === 'mastered' && <StarIcon className="w-6 h-6" />}
+        {status === 'learned'  && <CheckIcon className="w-6 h-6" />}
+        {status === 'locked'   && <span className="w-1.5 h-1.5 rounded-full bg-line" />}
+      </span>
+      <span className={`text-[10.5px] leading-tight text-center ${status === 'locked' ? 'font-medium text-ink-3' : 'font-semibold text-ink-2'}`}>
         {TECHNIQUE_LABELS[technique]}
       </span>
+      {status === 'learned' && useCount > 0 && (
+        <span className="text-[10px] text-ink-3 tabular -mt-0.5">{Math.min(useCount, 5)}/5</span>
+      )}
     </>
   )
 
+  const cls = 'flex flex-col items-center gap-1.5 select-none'
   if (onPress) {
     return (
-      <motion.button className={baseClass} whileTap={{ scale: 0.95 }} onClick={onPress}>
+      <motion.button type="button" className={cls} onClick={onPress} {...tap}>
         {inner}
       </motion.button>
     )
   }
-
-  return <div className={baseClass}>{inner}</div>
+  return <div className={cls}>{inner}</div>
 }
