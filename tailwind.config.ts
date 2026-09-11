@@ -32,11 +32,6 @@ export default {
         board: token('board'),
         'board-line': token('board-line'),
         'board-box': token('board-box'),
-
-        // Legacy aliases so every screen keeps building during the overhaul — removed in the final sweep
-        accent: token('aha'),
-        'accent-dim': token('aha-ink'),
-        error: token('signal'),
       },
       fontFamily: {
         display: ['"Bricolage Grotesque Variable"', '"SF Pro Display"', '-apple-system', 'system-ui', 'sans-serif'],
