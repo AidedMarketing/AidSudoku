@@ -3,6 +3,9 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  // GitHub Pages serves project sites under /<repo>/, not the domain root.
+  // Set unconditionally so local dev/preview exercise the same paths that ship.
+  base: '/AidSudoku/',
   plugins: [
     react(),
     VitePWA({
@@ -16,8 +19,7 @@ export default defineConfig({
         background_color: '#FFFFFF',
         display: 'standalone',
         orientation: 'portrait',
-        scope: '/',
-        start_url: '/',
+        // scope / start_url intentionally omitted — vite-plugin-pwa derives both from `base`
         icons: [
           {
             src: 'icons/icon.svg',
