@@ -8,6 +8,7 @@ import { GameTimer } from '../components/game/GameTimer'
 import { SolveReport } from '../components/solve-report/SolveReport'
 import { CoachOverlay } from '../components/learn/CoachOverlay'
 import { Toast } from '../components/ui/Toast'
+import { BackIcon, SparkIcon } from '../components/ui/icons'
 import { useGameStore } from '../store/gameStore'
 import { useTimer } from '../hooks/useTimer'
 import { useAhaMoment } from '../hooks/useAhaMoment'
@@ -26,7 +27,7 @@ export function Game() {
   const board          = useGameStore(s => s.board)
   const isDaily        = useGameStore(s => s.isDaily)
   const recordSolve    = useStatsStore(s => s.recordSolve)
-  const { handleHint } = useGame()
+  const { handleHint, handleNumberInput, isNotesMode } = useGame()
 
   // Drive the stopwatch
   useTimer()
@@ -79,63 +80,61 @@ export function Game() {
     }
   }, [gameStatus, isDaily])
 
+  const ahaMessage = !ahaMoment ? null
+    : ahaMoment.type === 'mastered'   ? `${ahaMoment.label} — mastered`
+    : ahaMoment.type === 'discovered' ? `${ahaMoment.label} — first use`
+    : ahaMoment.label
+
   return (
-    <div className="flex flex-col items-center h-dvh overflow-hidden bg-white dark:bg-[#121212] pt-safe">
+    <div className="flex flex-col items-center h-dvh overflow-hidden bg-paper bg-lamp pt-safe">
       {/* Top bar */}
-      <div className="w-full flex items-center justify-between px-4 pt-4 pb-2 shrink-0">
+      <div className="w-full max-w-[min(92vw,400px)] mx-auto flex items-center justify-between pt-3 pb-1 shrink-0">
         <button
-          className="text-gray-400 dark:text-gray-500 text-sm font-medium active:opacity-60 px-2 py-2"
+          type="button"
+          className="inline-flex items-center gap-0.5 -ml-2 px-2 py-2 text-[15px] font-semibold text-ink-2 active:opacity-60"
           onClick={() => {
             if (gameStatus !== 'won') resetGame()
             navigate('/')
           }}
         >
-          ← Back
+          <BackIcon className="w-5 h-5" /> Home
         </button>
         <GameTimer />
       </div>
 
       {/* Board area — fills remaining space and never overflows */}
-      <div className="flex-1 flex flex-col justify-center items-center gap-2 w-full px-2 py-1 pb-safe overflow-hidden">
+      <div className="relative flex-1 flex flex-col justify-center items-center gap-3 w-full px-2 py-1 pb-safe overflow-hidden">
         <AnimatePresence>
           {gameStatus === 'paused' && (
             <motion.div
-              className="absolute inset-0 z-10 flex items-center justify-center bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm"
+              className="absolute inset-0 z-10 flex items-center justify-center bg-paper/80 backdrop-blur-md"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-              <p className="text-2xl font-semibold text-gray-600 dark:text-gray-400">Paused</p>
+              <p className="font-display text-2xl font-bold text-ink-2">Paused</p>
             </motion.div>
           )}
         </AnimatePresence>
 
-        <SudokuBoard coachHighlight={coachHighlight} coachTarget={coachTarget} />
+        <SudokuBoard
+          coachHighlight={coachHighlight}
+          coachTarget={coachTarget}
+          ahaCell={ahaMoment?.cellIndex ?? null}
+          ahaKey={ahaMoment?.id}
+        />
 
         {/* Coach overlay — shown between board and controls when coachMode is on */}
         <AnimatePresence>
-          {coachMode && (
-            <CoachOverlay
-              step={coachStep}
-              onApply={handleHint}
-            />
-          )}
+          {coachMode && <CoachOverlay step={coachStep} onApply={handleHint} />}
         </AnimatePresence>
 
         <GameControls />
-        <NumberPad />
+        <NumberPad board={board} notesMode={isNotesMode} onInput={handleNumberInput} />
       </div>
 
       {/* A-ha! Toast */}
-      <Toast
-        id={ahaMoment?.id}
-        message={
-          !ahaMoment ? null :
-          ahaMoment.type === 'mastered'   ? `${ahaMoment.label} — mastered` :
-          ahaMoment.type === 'discovered' ? `${ahaMoment.label} — first use` :
-          ahaMoment.label
-        }
-      />
+      <Toast id={ahaMoment?.id} message={ahaMessage} icon={<SparkIcon className="w-4 h-4" />} />
 
       {/* Solve Report */}
       {gameStatus === 'won' && report && (

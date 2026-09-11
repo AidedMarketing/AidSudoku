@@ -134,6 +134,17 @@
 @layer utilities {
   .tabular { font-variant-numeric: tabular-nums; }
   .bg-lamp { background-image: var(--lamp); }
+
+  /* The A-ha bloom: the resolved cell swells gold once, then settles. */
+  @keyframes bloom {
+    0%   { background: radial-gradient(circle, rgb(var(--c-aha) / 0.55), transparent 70%); transform: scale(0.6); opacity: 0; }
+    30%  { transform: scale(1.15); opacity: 1; }
+    100% { background: radial-gradient(circle, rgb(var(--c-aha) / 0.18), transparent 75%); transform: scale(1); opacity: 1; }
+  }
+  .animate-bloom { animation: bloom 600ms cubic-bezier(.2,.8,.2,1) forwards; }
+  @media (prefers-reduced-motion: reduce) {
+    .animate-bloom { animation: none; background: radial-gradient(circle, rgb(var(--c-aha) / 0.18), transparent 75%); }
+  }
   /* Hide default button outline; we handle focus styles manually */
   button:focus-visible {
     @apply ring-2 ring-aha ring-offset-2 ring-offset-paper;

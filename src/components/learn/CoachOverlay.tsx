@@ -1,10 +1,11 @@
 // In-game Coach mode panel.
 // Displays the next logical step with explanation and highlighted cells.
-// Pure display component — parent computes the step.
+// Pure display component — parent computes the step and owns the AnimatePresence.
 
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import type { TechniqueStep } from '../../lib/sudoku/techniques'
 import { TECHNIQUE_LABELS } from '../../types'
+import { ArrowRightIcon } from '../ui/icons'
 
 interface Props {
   step: TechniqueStep | null
@@ -16,45 +17,42 @@ export function CoachOverlay({ step, onApply }: Props) {
   const label = step ? TECHNIQUE_LABELS[step.technique] : null
 
   return (
-    <AnimatePresence>
-      <motion.div
-        key="coach-overlay"
-        className="w-full max-w-[min(92vw,400px)] mx-auto bg-accent/10 dark:bg-accent/15 border border-accent/40 rounded-2xl px-4 py-3 flex flex-col gap-2"
-        initial={{ opacity: 0, y: -8 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -8 }}
-        transition={{ duration: 0.2 }}
-      >
-        {step ? (
-          <>
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-accent uppercase tracking-wide">
-                Coach · {label}
-              </span>
-              {!isPairStep && (
-                <button
-                  className="text-xs text-accent font-semibold active:opacity-60"
-                  onClick={onApply}
-                >
-                  Apply →
-                </button>
-              )}
-            </div>
-            <p className="text-sm text-gray-700 dark:text-gray-300 leading-snug">
-              {step.explanation}
-            </p>
-            {isPairStep && (
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-                This pattern removes candidates — then look for the next naked or hidden single.
-              </p>
+    <motion.div
+      key="coach-overlay"
+      className="w-full max-w-[min(92vw,400px)] mx-auto bg-guide/10 border border-guide/30 rounded-2xl px-4 py-3 flex flex-col gap-1.5"
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
+      transition={{ duration: 0.2 }}
+    >
+      {step ? (
+        <>
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-guide-ink">
+              Coach · {label}
+            </span>
+            {!isPairStep && (
+              <button
+                type="button"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-guide-ink active:opacity-60"
+                onClick={onApply}
+              >
+                Apply <ArrowRightIcon className="w-3.5 h-3.5" />
+              </button>
             )}
-          </>
-        ) : (
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            No more logical steps found. Use Hint to place a number and continue.
-          </p>
-        )}
-      </motion.div>
-    </AnimatePresence>
+          </div>
+          <p className="text-sm text-ink-2 leading-snug">{step.explanation}</p>
+          {isPairStep && (
+            <p className="text-xs text-ink-3">
+              This pattern removes candidates — then look for the next naked or hidden single.
+            </p>
+          )}
+        </>
+      ) : (
+        <p className="text-sm text-ink-2">
+          No more logical steps found. Use Hint to place a number and continue.
+        </p>
+      )}
+    </motion.div>
   )
 }

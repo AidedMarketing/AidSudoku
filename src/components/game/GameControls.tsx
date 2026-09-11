@@ -1,13 +1,18 @@
+import type { ComponentType } from 'react'
 import { useGame } from '../../hooks/useGame'
 import { useGameStore } from '../../store/gameStore'
+import { UndoIcon, EraseIcon, NotesIcon, HintIcon, CoachIcon } from '../ui/icons'
 
-interface ControlBtn {
+interface Control {
   label: string
-  icon: string
+  Icon: ComponentType<{ className?: string }>
   action: () => void
   active?: boolean
+  /** Which meaning the active state carries: gold = your own mode, teal = guidance. */
+  tone?: 'aha' | 'guide'
 }
 
+/** The floating control pill between the board and the keys. */
 export function GameControls() {
   const {
     handleUndo, handleErase, handleHint,
@@ -16,28 +21,30 @@ export function GameControls() {
   const coachMode       = useGameStore(s => s.coachMode)
   const toggleCoachMode = useGameStore(s => s.toggleCoachMode)
 
-  const controls: ControlBtn[] = [
-    { label: 'Undo',  icon: '↩',  action: handleUndo },
-    { label: 'Erase', icon: '⌫',  action: handleErase },
-    { label: 'Notes', icon: '✎',  action: toggleNotesMode, active: isNotesMode },
-    { label: 'Hint',  icon: '?',  action: handleHint },
-    { label: 'Coach', icon: '◎',  action: toggleCoachMode, active: coachMode },
+  const controls: Control[] = [
+    { label: 'Undo',  Icon: UndoIcon,  action: handleUndo },
+    { label: 'Erase', Icon: EraseIcon, action: handleErase },
+    { label: 'Notes', Icon: NotesIcon, action: toggleNotesMode, active: isNotesMode, tone: 'aha' },
+    { label: 'Hint',  Icon: HintIcon,  action: handleHint },
+    { label: 'Coach', Icon: CoachIcon, action: toggleCoachMode, active: coachMode, tone: 'guide' },
   ]
 
   return (
-    <div className="flex justify-around w-full max-w-[min(92vw,400px)] mx-auto py-1">
-      {controls.map(c => (
+    <div className="glass w-full max-w-[min(92vw,400px)] mx-auto h-[58px] rounded-full grid grid-cols-5 items-center px-1.5">
+      {controls.map(({ label, Icon, action, active, tone }) => (
         <button
-          key={c.label}
-          onClick={c.action}
-          className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-colors select-none ${
-            c.active
-              ? 'bg-accent text-white'
-              : 'text-gray-500 dark:text-gray-400 active:bg-gray-100 dark:active:bg-gray-800'
+          key={label}
+          type="button"
+          onClick={action}
+          aria-pressed={active}
+          className={`h-[46px] mx-0.5 rounded-full flex flex-col items-center justify-center gap-0.5 select-none text-[10px] font-semibold transition-colors active:scale-95 ${
+            active
+              ? tone === 'guide' ? 'bg-guide/25 text-guide-ink' : 'bg-aha/25 text-ink'
+              : 'text-ink-2'
           }`}
         >
-          <span className="text-xl leading-none font-light">{c.icon}</span>
-          <span className="text-[10px] font-medium">{c.label}</span>
+          <Icon className="w-5 h-5" />
+          <span>{label}</span>
         </button>
       ))}
     </div>
