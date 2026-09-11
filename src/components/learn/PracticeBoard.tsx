@@ -1,15 +1,20 @@
 // Standalone interactive practice board for technique lessons.
-// Self-contained local state — independent of the main game store.
+// Self-contained local state — independent of the main game store — but it renders with the
+// same SudokuCell, NumberPad and Toast the real game uses, so a lesson looks exactly like play.
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { generatePuzzle } from '../../lib/sudoku/generator'
+import { SudokuCell } from '../game/SudokuCell'
+import { NumberPad } from '../game/NumberPad'
+import { Toast } from '../ui/Toast'
+import { Button } from '../ui/Button'
+import { SparkIcon, EraseIcon } from '../ui/icons'
+import { generatePuzzle, rowOf, colOf, boxOf } from '../../lib/sudoku/generator'
 import { getNextCoachStep } from '../../lib/sudoku/techniques'
 import { detectTechnique } from '../../lib/sudoku/techniqueDetector'
 import { isCellValid } from '../../lib/sudoku/validator'
 import type { TechniqueName, Difficulty, PuzzleData } from '../../types'
 import { TECHNIQUE_LABELS } from '../../types'
-import { rowOf, colOf, boxOf } from '../../lib/sudoku/generator'
 
 interface Props {
   technique: TechniqueName
@@ -24,13 +29,14 @@ export function PracticeBoard({ technique, difficulty, practicePuzzle, onMastere
   const [solution, setSolution] = useState('')
   const [selected, setSelected] = useState<number | null>(null)
   const [hintStep, setHintStep] = useState<ReturnType<typeof getNextCoachStep>>(null)
-  const [toast, setToast]       = useState<{ msg: string; key: number } | null>(null)
+  const [toast, setToast]       = useState<{ msg: string; key: number; spark: boolean } | null>(null)
   const [complete, setComplete] = useState(false)
+  const [ahaCell, setAhaCell]   = useState<number | null>(null)
   const toastId = useRef(0)
   const prevBoardRef = useRef('')
 
-  function showToast(msg: string) {
-    setToast({ msg, key: ++toastId.current })
+  function showToast(msg: string, spark = false) {
+    setToast({ msg, key: ++toastId.current, spark })
     setTimeout(() => setToast(null), 2500)
   }
 
@@ -42,6 +48,7 @@ export function PracticeBoard({ technique, difficulty, practicePuzzle, onMastere
     setSelected(null)
     setHintStep(null)
     setComplete(false)
+    setAhaCell(null)
     prevBoardRef.current = p.clues
   }
 
@@ -57,7 +64,8 @@ export function PracticeBoard({ technique, difficulty, practicePuzzle, onMastere
       if (prev[i] !== board[i] && board[i] !== '0') {
         const result = detectTechnique(prev, board, i)
         if (result && result.technique === technique) {
-          showToast(`${TECHNIQUE_LABELS[technique]} applied`)
+          setAhaCell(i)
+          showToast(`${TECHNIQUE_LABELS[technique]} applied`, true)
           onMastered?.()
         }
         break
@@ -76,15 +84,14 @@ export function PracticeBoard({ technique, difficulty, practicePuzzle, onMastere
     if (selected === null) return
     if (clues[selected] !== '0') return
 
-    const newBoard = board.split('')
-    newBoard[selected] = String(num)
-    const newBoardStr = newBoard.join('')
-
     if (!isCellValid(board, selected, num)) {
       showToast('That number conflicts — check the row, column, and box.')
       return
     }
 
+    const newBoard = board.split('')
+    newBoard[selected] = String(num)
+    const newBoardStr = newBoard.join('')
     setBoard(newBoardStr)
     setHintStep(null)
 
@@ -104,142 +111,90 @@ export function PracticeBoard({ technique, difficulty, practicePuzzle, onMastere
   const handleCoach = useCallback(() => {
     const step = getNextCoachStep(board)
     setHintStep(step)
-    if (step) {
-      setSelected(step.cellIndex)
-    }
+    if (step) setSelected(step.cellIndex)
   }, [board])
 
   // Derived highlight sets
   const highlightCells = new Set(hintStep?.highlightCells ?? [])
   const coachTarget    = hintStep?.cellIndex ?? null
-
-  const selectedValue = selected !== null ? board[selected] : null
+  const selectedValue  = selected !== null ? board[selected] : null
 
   return (
-    <div className="flex flex-col items-center gap-4">
-      {/* Board */}
+    <div className="flex flex-col items-center gap-3">
+      {/* Board — same cell component as the real game */}
       <div
-        className="grid border-2 border-gray-900 dark:border-white w-full aspect-square"
+        className="grid w-full aspect-square bg-board border-2 border-board-box rounded-[10px] overflow-hidden shadow-board touch-none"
         style={{ gridTemplateColumns: 'repeat(9, 1fr)', gridTemplateRows: 'repeat(9, 1fr)' }}
       >
         {Array.from({ length: 81 }, (_, i) => {
-          const val      = board[i]
-          const isGiven  = clues[i] !== '0'
-          const isSel    = selected === i
-          const isEmpty  = val === '0'
-          const r = rowOf(i), c = colOf(i)
+          const val = board[i] ?? '0'
+          const isSel = selected === i
+          const isEmpty = val === '0'
           const isRelated = selected !== null && !isSel && (
-            rowOf(i) === rowOf(selected) ||
-            colOf(i) === colOf(selected) ||
-            boxOf(i) === boxOf(selected)
+            rowOf(i) === rowOf(selected) || colOf(i) === colOf(selected) || boxOf(i) === boxOf(selected)
           )
-          const isSameNum = !isEmpty && selectedValue && selectedValue !== '0' && val === selectedValue && !isSel
-          const isCoachTarget = coachTarget === i
-          const isHighlighted = highlightCells.has(i)
-
-          let bg = 'bg-white dark:bg-[#1E1E1E]'
-          if (isCoachTarget)   bg = 'bg-accent/40'
-          else if (isSel)      bg = 'bg-accent/25 dark:bg-accent/[0.19]'
-          else if (isHighlighted) bg = 'bg-blue-50 dark:bg-blue-950/30'
-          else if (isSameNum)  bg = 'bg-gray-100 dark:bg-gray-800'
-          else if (isRelated)  bg = 'bg-gray-50 dark:bg-[#242424]'
-
-          let textColor = 'text-gray-900 dark:text-white'
-          if (isGiven)         textColor = 'text-black dark:text-white font-semibold'
-          else if (isCoachTarget) textColor = 'text-accent font-bold'
-
-          const borderTop  = r % 3 === 0 && r !== 0 ? 'border-t-2 border-t-gray-800 dark:border-t-gray-300' : 'border-t border-t-gray-200 dark:border-t-gray-700'
-          const borderLeft = c % 3 === 0 && c !== 0 ? 'border-l-2 border-l-gray-800 dark:border-l-gray-300' : 'border-l border-l-gray-200 dark:border-l-gray-700'
-
+          const isSameNumber = !isEmpty && !!selectedValue && selectedValue !== '0' && val === selectedValue && !isSel
           return (
-            <motion.button
+            <SudokuCell
               key={i}
-              className={`relative aspect-square flex items-center justify-center select-none ${bg} ${borderTop} ${borderLeft} focus:outline-none`}
-              onTap={() => handleCellPress(i)}
-              whileTap={{ scale: 0.9 }}
-              transition={{ duration: 0.07 }}
-            >
-              {!isEmpty && (
-                <span className={`text-[clamp(12px,3.5vw,20px)] leading-none ${textColor}`}>{val}</span>
-              )}
-            </motion.button>
+              idx={i}
+              value={val}
+              isGiven={clues[i] !== '0'}
+              isSelected={isSel}
+              isSameNumber={isSameNumber}
+              isRelated={isRelated}
+              isConflict={false}
+              isCoachTarget={coachTarget === i}
+              isCoachRelated={coachTarget !== i && highlightCells.has(i)}
+              isAha={ahaCell === i}
+              ahaKey={toast?.key}
+              notes={[]}
+              onPress={handleCellPress}
+            />
           )
         })}
       </div>
 
-      {/* Coach hint explanation */}
+      {/* Coach hint explanation — guidance, so teal */}
       <AnimatePresence>
         {hintStep && (
           <motion.div
             key="hint"
-            className="w-full bg-accent/10 border border-accent/30 rounded-xl px-4 py-3"
+            className="w-full bg-guide/10 border border-guide/30 rounded-2xl px-4 py-3"
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
           >
-            <p className="text-xs font-semibold text-accent mb-1">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-guide-ink mb-1">
               {TECHNIQUE_LABELS[hintStep.technique]}
             </p>
-            <p className="text-sm text-gray-700 dark:text-gray-300 leading-snug">
-              {hintStep.explanation}
-            </p>
+            <p className="text-sm text-ink-2 leading-snug">{hintStep.explanation}</p>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Number pad */}
-      {!complete && (
-        <div className="grid grid-cols-5 gap-2 w-full">
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => (
-            <button
-              key={n}
-              className="aspect-square rounded-xl text-lg font-semibold bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white active:bg-gray-200 dark:active:bg-gray-700 transition-colors"
-              onClick={() => handleNumber(n)}
-            >
-              {n}
-            </button>
-          ))}
-          <button
-            className="aspect-square rounded-xl text-sm font-medium bg-gray-100 dark:bg-gray-800 text-gray-500 active:bg-gray-200 dark:active:bg-gray-700"
-            onClick={handleErase}
-          >
-            ⌫
-          </button>
-        </div>
-      )}
+      {/* Keys — the real game's pad, with remaining counts */}
+      {!complete && <NumberPad board={board} notesMode={false} onInput={handleNumber} />}
 
-      {/* Actions row */}
-      <div className="flex gap-3 w-full">
-        <button
-          className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-accent/15 text-accent active:bg-accent/25 transition-colors"
-          onClick={handleCoach}
-        >
-          Coach hint
-        </button>
-        {complete && (
-          <button
-            className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 active:opacity-70"
-            onClick={newPuzzle}
-          >
-            New puzzle
-          </button>
+      {/* Actions */}
+      <div className="flex gap-2 w-full">
+        <Button variant="glass" className="flex-1" onClick={handleCoach}>Coach hint</Button>
+        {complete ? (
+          <Button variant="secondary" className="flex-1" onClick={newPuzzle}>New puzzle</Button>
+        ) : (
+          <Button variant="secondary" className="px-4" onClick={handleErase} aria-label="Erase">
+            <EraseIcon className="w-5 h-5" />
+          </Button>
         )}
       </div>
 
-      {/* Toast */}
-      <AnimatePresence>
-        {toast && (
-          <motion.div
-            key={toast.key}
-            className="fixed bottom-36 left-1/2 -translate-x-1/2 z-50 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-medium px-4 py-2.5 rounded-full shadow-lg whitespace-nowrap"
-            initial={{ opacity: 0, y: 8, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-          >
-            {toast.msg}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <Toast
+        message={toast?.msg ?? null}
+        id={toast?.key}
+        icon={toast?.spark ? <SparkIcon className="w-4 h-4" /> : undefined}
+        position="bottom"
+      />
     </div>
   )
 }

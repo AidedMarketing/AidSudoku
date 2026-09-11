@@ -3,6 +3,8 @@ import { persist } from 'zustand/middleware'
 
 interface SettingsState {
   isDarkMode: boolean
+  /** Turns every glass surface into solid paper — for readability or older devices. */
+  reduceTransparency: boolean
   showTimer: boolean
   showErrors: boolean
   autoRemoveNotes: boolean
@@ -11,6 +13,7 @@ interface SettingsState {
   isPremium: boolean  // future monetisation gate
 
   setDarkMode: (v: boolean) => void
+  setReduceTransparency: (v: boolean) => void
   setShowTimer: (v: boolean) => void
   setShowErrors: (v: boolean) => void
   setAutoRemoveNotes: (v: boolean) => void
@@ -22,6 +25,7 @@ export const useSettingsStore = create<SettingsState>()(
   persist(
     set => ({
       isDarkMode: window.matchMedia('(prefers-color-scheme: dark)').matches,
+      reduceTransparency: false,
       showTimer: true,
       showErrors: true,
       autoRemoveNotes: true,
@@ -30,6 +34,7 @@ export const useSettingsStore = create<SettingsState>()(
       isPremium: false,
 
       setDarkMode: v => set({ isDarkMode: v }),
+      setReduceTransparency: v => set({ reduceTransparency: v }),
       setShowTimer: v => set({ showTimer: v }),
       setShowErrors: v => set({ showErrors: v }),
       setAutoRemoveNotes: v => set({ autoRemoveNotes: v }),
