@@ -2,16 +2,14 @@ import { useEffect, useRef, useState } from 'react'
 import { useGameStore } from '../store/gameStore'
 import { usePassportStore } from '../store/passportStore'
 import { detectTechnique } from '../lib/sudoku/techniqueDetector'
+import { FREE_TECHNIQUES } from '../data/lessonContent'
 import type { TechniqueName } from '../types'
 import { TECHNIQUE_LABELS } from '../types'
 
-// Phase 2: all 4 free-tier techniques fire A-ha! moments
-const AHA_ELIGIBLE: TechniqueName[] = [
-  'naked_singles',
-  'hidden_singles',
-  'naked_pairs',
-  'hidden_pairs',
-]
+// Every technique that has a lesson can fire an A-ha! moment.
+// (Was a hardcoded list of the original four — the seven techniques added with
+// the full lesson library were being detected and counted but never celebrated.)
+const AHA_ELIGIBLE: TechniqueName[] = FREE_TECHNIQUES
 
 export type AhaMomentType = 'aha' | 'mastered' | 'discovered'
 
@@ -20,6 +18,8 @@ export interface AhaMoment {
   technique: TechniqueName
   label: string
   type: AhaMomentType
+  /** Board index of the cell whose placement triggered the moment — drives the gold bloom. */
+  cellIndex: number
 }
 
 /**
@@ -84,6 +84,7 @@ export function useAhaMoment() {
             technique,
             label: TECHNIQUE_LABELS[technique],
             type,
+            cellIndex: changedIdx,
           })
 
           // Auto-dismiss

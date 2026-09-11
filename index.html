@@ -4,13 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="description" content="The Sudoku app that makes you better. Learn techniques, track your progress, and improve with every puzzle." />
-    <meta name="theme-color" content="#6AAD64" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F4F5F7" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0F1115" />
 
-    <!-- PWA / iOS -->
+    <!-- PWA / iOS. Touch icons must be PNG — iOS ignores SVG here. -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="AidSudoku" />
-    <link rel="apple-touch-icon" href="/icons/icon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-180.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
+    <link rel="icon" type="image/svg+xml" href="/icons/icon.svg" />
 
     <title>AidSudoku</title>
   </head>
