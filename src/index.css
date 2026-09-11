@@ -86,6 +86,8 @@
 
   /* Safe area padding utilities */
   .pt-safe { padding-top: env(safe-area-inset-top, 0px); }
+  /* Page top: clears the status bar in the installed PWA, then a comfortable margin */
+  .pt-page { padding-top: calc(env(safe-area-inset-top, 0px) + 1.75rem); }
   .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
   /* Room for the floating tab capsule (62px) + its 16px inset + breathing space + the home indicator */
   .pb-tab-safe { padding-bottom: calc(6.5rem + env(safe-area-inset-bottom, 0px)); }
