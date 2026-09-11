@@ -1,150 +1,193 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { PageShell } from '../components/ui/PageShell'
+import { Card } from '../components/ui/Card'
+import { Chip } from '../components/ui/Chip'
 import { Button } from '../components/ui/Button'
-import { BottomSheet } from '../components/ui/BottomSheet'
+import { SectionLabel } from '../components/ui/SectionLabel'
+import { ConfirmSheet } from '../components/ui/ConfirmSheet'
+import { SparkIcon, CheckIcon, ArrowRightIcon } from '../components/ui/icons'
 import { useGameStore } from '../store/gameStore'
-import { useDailyStore } from '../store/dailyStore'
+import { useStatsStore } from '../store/statsStore'
+import { usePassportStore } from '../store/passportStore'
+import { useDailyLaunch } from '../hooks/useDailyLaunch'
+import { formatTime } from '../hooks/useTimer'
 import { generatePuzzle } from '../lib/sudoku/generator'
+import { DIFFICULTIES, DIFFICULTY_LABEL, nextTier } from '../lib/difficulty'
+import { LESSONS } from '../data/lessonContent'
+import { ALL_TECHNIQUES, TECHNIQUE_LABELS } from '../types'
 import type { Difficulty } from '../types'
 
-const DIFFICULTIES: { value: Difficulty; label: string; desc: string }[] = [
-  { value: 'easy',   label: 'Easy',   desc: '36+ clues — simpler deduction chains' },
-  { value: 'medium', label: 'Medium', desc: '27–35 clues — mixed techniques needed' },
-  { value: 'hard',   label: 'Hard',   desc: '22–26 clues — advanced logic required' },
-  { value: 'expert', label: 'Expert', desc: '17–21 clues — minimal givens, maximum depth' },
-]
-
 export function Home() {
-  const navigate    = useNavigate()
-  const startGame   = useGameStore(s => s.startGame)
-  const gameStatus  = useGameStore(s => s.gameStatus)
+  const navigate       = useNavigate()
+  const startGame      = useGameStore(s => s.startGame)
+  const gameStatus     = useGameStore(s => s.gameStatus)
+  const currentStreak  = useStatsStore(s => s.currentStreak)
+  const history        = useStatsStore(s => s.history)
+  const getGamesPlayed = useStatsStore(s => s.getGamesPlayed)
+  const passport       = usePassportStore(s => s.passport)
+  const daily          = useDailyLaunch()
 
-  const dailyCompleted    = useDailyStore(s => s.completed)
-  const dailyPuzzle       = useDailyStore(s => s.puzzle)
-  const ensureTodayPuzzle = useDailyStore(s => s.ensureTodayPuzzle)
-  useEffect(() => { ensureTodayPuzzle() }, [ensureTodayPuzzle])
-
-  const [showDiffSheet,    setShowDiffSheet]    = useState(false)
-  const [showConfirmSheet, setShowConfirmSheet] = useState(false)
   const [pendingDifficulty, setPendingDifficulty] = useState<Difficulty | null>(null)
+  const inProgress = gameStatus === 'playing' || gameStatus === 'paused'
 
+  // ── Quick play (ad-hoc puzzles) ─────────────────────────────────────────────
   function tryStart(difficulty: Difficulty) {
-    if (gameStatus === 'playing' || gameStatus === 'paused') {
-      // Game in progress — ask for confirmation first
-      setPendingDifficulty(difficulty)
-      setShowDiffSheet(false)
-      setShowConfirmSheet(true)
-    } else {
-      setShowDiffSheet(false)
-      startGame(generatePuzzle(difficulty))
-      navigate('/game')
-    }
+    if (inProgress) { setPendingDifficulty(difficulty); return }
+    startGame(generatePuzzle(difficulty))
+    navigate('/game')
   }
-
-  function confirmAbandon() {
+  function confirmNewGame() {
     if (!pendingDifficulty) return
-    setShowConfirmSheet(false)
-    startGame(generatePuzzle(pendingDifficulty))
+    const d = pendingDifficulty
+    setPendingDifficulty(null)
+    startGame(generatePuzzle(d))
     navigate('/game')
   }
 
+  // ── Tonight ──────────────────────────────────────────────────────────────────
+  const tier   = daily.puzzle?.difficulty
+  const label  = tier ? DIFFICULTY_LABEL[tier] : ''
+  const played = tier ? getGamesPlayed(tier) : 0
+  const next   = tier ? nextTier(tier) : null
+  const reason = !tier ? ''
+    : next
+      ? `Based on ${played} ${label} solve${played === 1 ? '' : 's'} · ${Math.min(getGamesPlayed(next), 5)}/5 ${DIFFICULTY_LABEL[next]} to move up`
+      : `Based on ${played} ${label} solve${played === 1 ? '' : 's'} · top level`
+
+  const todayStr = new Date().toDateString()
+  const todayRecord = daily.state === 'done'
+    ? [...history].reverse().find(r => r.date === todayStr && r.difficulty === daily.completedDifficulty)
+    : undefined
+
+  // ── Passport summary ─────────────────────────────────────────────────────────
+  const mastered  = ALL_TECHNIQUES.filter(t => passport[t].status === 'mastered').length
+  const learned   = ALL_TECHNIQUES.filter(t => passport[t].status !== 'locked').length
+  const nextLesson = ALL_TECHNIQUES.find(t => passport[t].status === 'locked' && LESSONS[t] !== null) ?? null
+
+  const dateLine = new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })
+
   return (
-    <div className="flex flex-col px-5 pt-10 pb-28 min-h-screen bg-white dark:bg-[#121212]">
+    <PageShell>
       {/* Wordmark */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-10"
-      >
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
-          Aid<span className="text-accent">Sudoku</span>
+      <header className="mb-6">
+        <h1 className="font-display text-[34px] font-extrabold leading-none tracking-[-0.03em] text-ink">
+          Aid<span className="text-aha-ink">Sudoku</span>
         </h1>
-        <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
-          The Sudoku app that makes you better.
-        </p>
-      </motion.div>
+        <p className="text-sm text-ink-3 mt-1.5">{dateLine}</p>
+      </header>
 
-      {/* Resume card */}
-      {(gameStatus === 'playing' || gameStatus === 'paused') && (
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-accent/10 border border-accent/20 rounded-2xl p-4 mb-6 flex items-center justify-between"
-        >
-          <div>
-            <p className="font-semibold text-accent-dim dark:text-accent">Game in progress</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Tap to continue</p>
+      <div className="flex flex-col gap-4">
+        {/* Tonight */}
+        <Card variant="glass">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="font-display text-lg font-bold text-ink">Tonight</h2>
+            {currentStreak > 0 && (
+              <span className="inline-flex items-center gap-1 text-sm font-semibold text-aha-ink tabular">
+                <SparkIcon className="w-4 h-4 text-aha" />
+                {currentStreak}-day streak
+              </span>
+            )}
           </div>
-          <Button size="sm" onClick={() => navigate('/game')}>Resume</Button>
-        </motion.div>
-      )}
 
-      {/* Quick-start */}
-      <div className="flex flex-col gap-3">
-        <Button size="lg" className="w-full" onClick={() => setShowDiffSheet(true)}>
-          New Puzzle
-        </Button>
-        <Button
-          variant="secondary"
-          size="lg"
-          className="w-full flex items-center justify-center gap-2"
-          onClick={() => navigate('/daily')}
-        >
-          {dailyCompleted ? (
-            "Today's Puzzle ✓"
-          ) : (
+          {daily.state === 'loading' && (
+            <p className="text-sm text-ink-3 mt-2">Preparing tonight's puzzle…</p>
+          )}
+
+          {(daily.state === 'start' || daily.state === 'resume') && (
             <>
-              <span className="w-1.5 h-1.5 rounded-full bg-accent shrink-0" />
-              {`Today's Puzzle${dailyPuzzle ? ` · ${dailyPuzzle.difficulty[0].toUpperCase()}${dailyPuzzle.difficulty.slice(1)}` : ''}`}
+              <p className="text-sm text-ink-2 mt-1">{label} · one puzzle a day</p>
+              <p className="text-xs text-ink-3 mt-1">{reason}</p>
+              <Button size="lg" className="w-full mt-4" onClick={daily.launch}>
+                {daily.state === 'resume' ? "Resume tonight's puzzle" : "Start tonight's puzzle"}
+              </Button>
             </>
           )}
-        </Button>
+
+          {daily.state === 'done' && (
+            <>
+              <div className="mt-3 flex items-center gap-3">
+                <span className="w-9 h-9 rounded-full bg-aha grid place-items-center shadow-glow shrink-0">
+                  <CheckIcon className="w-5 h-5 text-[#1A1200]" />
+                </span>
+                <div>
+                  <p className="font-semibold text-ink">Solved</p>
+                  <p className="text-xs text-ink-2 tabular">
+                    {todayRecord
+                      ? `${formatTime(todayRecord.timeSeconds)} · ${DIFFICULTY_LABEL[todayRecord.difficulty]} · ${'★'.repeat(todayRecord.stars)}`
+                      : label}
+                  </p>
+                </div>
+              </div>
+              <p className="text-xs text-ink-3 mt-3">Come back tomorrow for a new puzzle.</p>
+            </>
+          )}
+        </Card>
+
+        {/* Some other game is mid-flight — don't let it get lost behind Tonight */}
+        {daily.otherGameInProgress && (
+          <Card variant="solid" onClick={() => navigate('/game')} className="flex items-center justify-between py-3">
+            <div>
+              <p className="text-sm font-semibold text-ink">Puzzle in progress</p>
+              <p className="text-xs text-ink-3">Tap to continue</p>
+            </div>
+            <ArrowRightIcon className="w-5 h-5 text-ink-3" />
+          </Card>
+        )}
+
+        {/* Quick play */}
+        <div>
+          <SectionLabel>Quick play</SectionLabel>
+          <div className="flex gap-2 flex-wrap">
+            {DIFFICULTIES.map(d => (
+              <Chip key={d} glass active={d === tier} onClick={() => tryStart(d)}>
+                {DIFFICULTY_LABEL[d]}
+              </Chip>
+            ))}
+          </div>
+        </div>
+
+        {/* Passport */}
+        <Card variant="glass" onClick={() => navigate('/passport')} className="py-3.5">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-ink">Passport</h3>
+            <span className="text-xs text-ink-3 tabular">{learned} of {ALL_TECHNIQUES.length} · {mastered} mastered</span>
+          </div>
+          <div className="flex gap-1.5 mt-3" aria-hidden="true">
+            {ALL_TECHNIQUES.map(t => {
+              const s = passport[t].status
+              return <i key={t} className={`h-1.5 flex-1 rounded-full ${s === 'mastered' ? 'bg-aha' : s === 'learned' ? 'bg-guide' : 'bg-line'}`} />
+            })}
+          </div>
+          {nextLesson ? (
+            <p className="text-xs font-semibold text-guide-ink mt-3 inline-flex items-center gap-1">
+              Next: {TECHNIQUE_LABELS[nextLesson]} <ArrowRightIcon className="w-3.5 h-3.5" />
+            </p>
+          ) : (
+            <p className="text-xs text-ink-3 mt-3">Every technique learned.</p>
+          )}
+        </Card>
       </div>
 
-      {/* Difficulty picker */}
-      <BottomSheet
-        open={showDiffSheet}
-        onClose={() => setShowDiffSheet(false)}
-        title="Choose difficulty"
-      >
-        <div className="flex flex-col gap-3">
-          {DIFFICULTIES.map(d => (
-            <button
-              key={d.value}
-              className="flex flex-col text-left px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 active:bg-gray-50 dark:active:bg-gray-800"
-              onClick={() => tryStart(d.value)}
-            >
-              <span className="font-semibold text-gray-900 dark:text-white">{d.label}</span>
-              <span className="text-xs text-gray-400 mt-0.5">{d.desc}</span>
-            </button>
-          ))}
-        </div>
-      </BottomSheet>
-
-      {/* Abandon confirmation */}
-      <BottomSheet
-        open={showConfirmSheet}
-        onClose={() => setShowConfirmSheet(false)}
-        title="Abandon current game?"
-      >
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">
-          Your current puzzle will be lost. This can't be undone.
-        </p>
-        <div className="flex flex-col gap-3">
-          <Button size="lg" className="w-full" onClick={confirmAbandon}>
-            Start new game
-          </Button>
-          <Button
-            variant="secondary"
-            size="lg"
-            className="w-full"
-            onClick={() => { setShowConfirmSheet(false); navigate('/game') }}
-          >
-            Keep playing
-          </Button>
-        </div>
-      </BottomSheet>
-    </div>
+      {/* Abandon confirmations */}
+      <ConfirmSheet
+        open={pendingDifficulty !== null}
+        onClose={() => setPendingDifficulty(null)}
+        title="Abandon current puzzle?"
+        body="Your current puzzle will be lost. This can't be undone."
+        confirmLabel={`Start ${pendingDifficulty ? DIFFICULTY_LABEL[pendingDifficulty] : ''}`}
+        cancelLabel="Keep playing"
+        onConfirm={confirmNewGame}
+      />
+      <ConfirmSheet
+        open={daily.confirmOpen}
+        onClose={daily.closeConfirm}
+        title="Abandon current puzzle?"
+        body="Your current puzzle will be lost. This can't be undone."
+        confirmLabel="Start tonight's puzzle"
+        cancelLabel="Keep playing"
+        onConfirm={daily.confirmAbandon}
+      />
+    </PageShell>
   )
 }

@@ -1,139 +1,121 @@
-// Today's puzzle — same puzzle for the whole day, difficulty grows with the
-// player's own history. Fully local: no backend, no leaderboard.
+// Today's puzzle — same puzzle for the whole day, difficulty grows with the player's
+// own history. Fully local: no backend, no leaderboard. Launch logic lives in useDailyLaunch.
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { PageShell } from '../components/ui/PageShell'
+import { Card } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
-import { BottomSheet } from '../components/ui/BottomSheet'
+import { ConfirmSheet } from '../components/ui/ConfirmSheet'
+import { SparkIcon, CheckIcon } from '../components/ui/icons'
 import { useGameStore } from '../store/gameStore'
-import { useDailyStore } from '../store/dailyStore'
 import { useStatsStore } from '../store/statsStore'
+import { useDailyLaunch } from '../hooks/useDailyLaunch'
 import { formatTime } from '../hooks/useTimer'
-
-const DIFFICULTY_LABEL: Record<string, string> = {
-  easy: 'Easy',
-  medium: 'Medium',
-  hard: 'Hard',
-  expert: 'Expert',
-}
+import { generatePuzzle } from '../lib/sudoku/generator'
+import { DIFFICULTY_LABEL } from '../lib/difficulty'
 
 export function Daily() {
-  const navigate = useNavigate()
+  const navigate      = useNavigate()
+  const daily         = useDailyLaunch()
+  const startGame     = useGameStore(s => s.startGame)
+  const gameStatus    = useGameStore(s => s.gameStatus)
+  const history       = useStatsStore(s => s.history)
+  const currentStreak = useStatsStore(s => s.currentStreak)
 
-  const daily             = useDailyStore()
-  const ensureTodayPuzzle = useDailyStore(s => s.ensureTodayPuzzle)
-  const startGame         = useGameStore(s => s.startGame)
-  const gameStatus        = useGameStore(s => s.gameStatus)
-  const gamePuzzle        = useGameStore(s => s.puzzle)
-  const gameIsDaily       = useGameStore(s => s.isDaily)
-  const history           = useStatsStore(s => s.history)
-  const currentStreak     = useStatsStore(s => s.currentStreak)
+  const [practiceConfirm, setPracticeConfirm] = useState(false)
+  const inProgress = gameStatus === 'playing' || gameStatus === 'paused'
+  const dateLine = new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })
 
-  const [showConfirmSheet, setShowConfirmSheet] = useState(false)
-
-  useEffect(() => { ensureTodayPuzzle() }, [ensureTodayPuzzle])
-
-  if (!daily.puzzle) {
+  if (daily.state === 'loading' || !daily.puzzle) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-white dark:bg-[#121212]">
-        <p className="text-sm text-gray-400">Preparing today's puzzle…</p>
-      </div>
+      <PageShell center>
+        <p className="text-sm text-ink-3">Preparing today's puzzle…</p>
+      </PageShell>
     )
   }
 
-  const isResumingTodaysDaily =
-    (gameStatus === 'playing' || gameStatus === 'paused') &&
-    gameIsDaily &&
-    gamePuzzle?.clues === daily.puzzle.clues
+  const label = DIFFICULTY_LABEL[daily.puzzle.difficulty]
 
-  function startToday() {
-    if (!daily.puzzle) return
-    startGame(daily.puzzle, true)
-    navigate('/game')
-  }
-
-  function handleStartPress() {
-    if (isResumingTodaysDaily) {
-      navigate('/game')
-      return
-    }
-    if (gameStatus === 'playing' || gameStatus === 'paused') {
-      setShowConfirmSheet(true)
-      return
-    }
-    startToday()
-  }
-
-  function confirmAbandon() {
-    setShowConfirmSheet(false)
-    startToday()
-  }
-
-  if (daily.completed) {
+  // ── Solved ───────────────────────────────────────────────────────────────────
+  if (daily.state === 'done') {
     const todayStr = new Date().toDateString()
     const record = [...history].reverse().find(
-      r => r.difficulty === daily.completedDifficulty && r.date === todayStr
+      r => r.difficulty === daily.completedDifficulty && r.date === todayStr,
     )
+    const practiceTier = daily.completedDifficulty ?? daily.puzzle.difficulty
+
+    function practice() {
+      if (inProgress) { setPracticeConfirm(true); return }
+      startGame(generatePuzzle(practiceTier))
+      navigate('/game')
+    }
 
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen px-5 pb-28 bg-white dark:bg-[#121212]">
-        <div className="text-center max-w-xs">
-          <p className="text-3xl mb-3">✓</p>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
-            Today's puzzle solved
-          </h2>
+      <PageShell>
+        <header className="mb-6">
+          <h1 className="font-display text-[28px] font-bold leading-none text-ink">Daily</h1>
+          <p className="text-sm text-ink-3 mt-1.5">{dateLine}</p>
+        </header>
+
+        <Card variant="glass" className="text-center py-7">
+          <span className="mx-auto w-14 h-14 rounded-full bg-aha grid place-items-center shadow-glow">
+            <CheckIcon className="w-7 h-7 text-[#1A1200]" />
+          </span>
+          <h2 className="font-display text-xl font-bold text-ink mt-3">Solved</h2>
           {record && (
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
-              {formatTime(record.timeSeconds)} · {DIFFICULTY_LABEL[record.difficulty]} · {'★'.repeat(record.stars)}
+            <p className="text-[15px] font-semibold text-ink tabular mt-1">
+              {formatTime(record.timeSeconds)} · {DIFFICULTY_LABEL[record.difficulty]} · <span className="text-aha-ink">{'★'.repeat(record.stars)}</span>
             </p>
           )}
           {currentStreak > 0 && (
-            <p className="text-sm text-accent font-medium mb-4">
-              🔥 {currentStreak}-day streak
+            <p className="inline-flex items-center gap-1 text-sm font-semibold text-aha-ink tabular mt-2">
+              <SparkIcon className="w-4 h-4 text-aha" />
+              {currentStreak}-day streak
             </p>
           )}
-          <p className="text-sm text-gray-400">Come back tomorrow for a new puzzle.</p>
+          <p className="text-xs text-ink-3 mt-4">Next puzzle at midnight.</p>
+        </Card>
+
+        <div className="flex gap-3 mt-4">
+          <Button variant="glass" size="lg" className="flex-1" onClick={() => navigate('/stats')}>Stats</Button>
+          <Button variant="glass" size="lg" className="flex-1" onClick={practice}>Practice {DIFFICULTY_LABEL[practiceTier]}</Button>
         </div>
-      </div>
+
+        <ConfirmSheet
+          open={practiceConfirm}
+          onClose={() => setPracticeConfirm(false)}
+          title="Abandon current puzzle?"
+          body="Your current puzzle will be lost. This can't be undone."
+          confirmLabel={`Start ${DIFFICULTY_LABEL[practiceTier]}`}
+          cancelLabel="Keep playing"
+          onConfirm={() => { setPracticeConfirm(false); startGame(generatePuzzle(practiceTier)); navigate('/game') }}
+        />
+      </PageShell>
     )
   }
 
+  // ── Not yet played / resume ──────────────────────────────────────────────────
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen px-5 pb-28 bg-white dark:bg-[#121212]">
-      <div className="text-center max-w-xs w-full">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
-          Today's Puzzle
-        </h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-          {DIFFICULTY_LABEL[daily.puzzle.difficulty]} · one puzzle a day
-        </p>
-        <Button size="lg" className="w-full" onClick={handleStartPress}>
-          {isResumingTodaysDaily ? 'Resume' : 'Start'}
+    <PageShell center>
+      <div className="w-full max-w-xs text-center">
+        <h1 className="font-display text-[28px] font-bold leading-none text-ink">Today's Puzzle</h1>
+        <p className="text-sm text-ink-2 mt-2">{label} · one puzzle a day</p>
+        <p className="text-xs text-ink-3 mt-1">{dateLine}</p>
+        <Button size="lg" className="w-full mt-6" onClick={daily.launch}>
+          {daily.state === 'resume' ? 'Resume' : 'Start'}
         </Button>
       </div>
 
-      <BottomSheet
-        open={showConfirmSheet}
-        onClose={() => setShowConfirmSheet(false)}
-        title="Abandon current game?"
-      >
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">
-          Your current puzzle will be lost. This can't be undone.
-        </p>
-        <div className="flex flex-col gap-3">
-          <Button size="lg" className="w-full" onClick={confirmAbandon}>
-            Start today's puzzle
-          </Button>
-          <Button
-            variant="secondary"
-            size="lg"
-            className="w-full"
-            onClick={() => setShowConfirmSheet(false)}
-          >
-            Cancel
-          </Button>
-        </div>
-      </BottomSheet>
-    </div>
+      <ConfirmSheet
+        open={daily.confirmOpen}
+        onClose={daily.closeConfirm}
+        title="Abandon current puzzle?"
+        body="Your current puzzle will be lost. This can't be undone."
+        confirmLabel="Start today's puzzle"
+        cancelLabel="Keep playing"
+        onConfirm={daily.confirmAbandon}
+      />
+    </PageShell>
   )
 }
